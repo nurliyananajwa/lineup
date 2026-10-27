@@ -162,6 +162,7 @@ export type Database = {
           venue_name: string
         }[]
       }
+      event_organizer_contact: { Args: { p_event_id: number }; Returns: { email: string; name: string }[] }
       is_admin: { Args: never; Returns: boolean }
       register_for_event: { Args: { p_email: string; p_event_id: number; p_name: string }; Returns: string }
       seats_left: { Args: { p_event_id: number }; Returns: number }

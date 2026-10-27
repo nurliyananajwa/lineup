@@ -55,7 +55,13 @@ async function CheckInContent({ params }: PageProps<'/check-in/[id]'>) {
       <CheckInScanner checkIn={checkIn.bind(null, id)} />
 
       <section className="card p-0">
-        <h2 className="border-b border-zinc-200 px-6 py-4 text-lg font-semibold">Attendees</h2>
+        <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
+          <h2 className="text-lg font-semibold">Attendees</h2>
+          {list.length > 0 && (
+            // A plain link: the browser downloads the file the route returns.
+            <a href={`/check-in/${id}/attendees.csv`} className="btn-secondary px-3 py-1.5">Download CSV</a>
+          )}
+        </div>
         {list.length === 0 ? (
           <p className="px-6 py-6 text-center text-muted">Nobody has registered yet.</p>
         ) : (

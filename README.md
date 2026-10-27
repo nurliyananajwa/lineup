@@ -52,4 +52,4 @@ where id = (select id from auth.users where email = 'you@example.com');
 
 v1 live: accounts and roles, venues, event submission with guests and posters, admin review, public event pages, registration and QR tickets.
 
-v2 in progress: QR check-in at the door is done (camera scanner, manual fallback, live attendee count). Next: emails, PDF export, supporting documents, CSV export.
+v2 in progress: done so far are QR check-in at the door (camera scanner, manual fallback, live attendee count), CSV export of attendees, and emails (approval/rejection to organizers, ticket to attendees; enabled when RESEND_API_KEY is set). Next: PDF export and supporting documents.
