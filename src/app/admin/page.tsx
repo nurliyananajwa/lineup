@@ -39,9 +39,9 @@ async function AdminDashboardContent() {
         ))}
       </div>
       <div className="flex gap-3">
+        <Link href="/admin/events" className="btn-primary">Review events{pending ? ` (${pending})` : ''}</Link>
         <Link href="/admin/venues" className="btn-secondary">Manage venues</Link>
       </div>
-      <p className="text-sm text-muted">Event review screens come in the next step of the build.</p>
     </div>
   )
 }

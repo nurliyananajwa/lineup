@@ -15,6 +15,7 @@ export default async function Nav() {
         {profile?.role === 'admin' && (
           <>
             <Link href="/admin" className="text-sm text-muted hover:text-zinc-900">Admin</Link>
+            <Link href="/admin/events" className="text-sm text-muted hover:text-zinc-900">Review</Link>
             <Link href="/admin/venues" className="text-sm text-muted hover:text-zinc-900">Venues</Link>
           </>
         )}

@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import Loading from '@/components/Loading'
+import Link from 'next/link'
 import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { formatRange, STATUS_STYLES } from '@/lib/format'
@@ -22,7 +23,10 @@ async function OrganizerDashboardContent() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">My events</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">My events</h1>
+        <Link href="/organizer/events/new" className="btn-primary">New event</Link>
+      </div>
       <div className="grid gap-4 sm:grid-cols-4">
         {counts.map((c) => (
           <div key={c.status} className="card">
@@ -35,7 +39,8 @@ async function OrganizerDashboardContent() {
       {events && events.length > 0 ? (
         <ul className="card divide-y divide-zinc-100 p-0">
           {events.map((e) => (
-            <li key={e.id} className="flex flex-wrap items-center gap-3 px-6 py-4">
+            <li key={e.id}>
+              <Link href={`/organizer/events/${e.id}`} className="flex flex-wrap items-center gap-3 px-6 py-4 hover:bg-zinc-50">
               <div className="flex-1">
                 <p className="font-medium">{e.name}</p>
                 <p className="text-sm text-muted">{formatRange(e.starts_at, e.ends_at)}</p>
@@ -44,12 +49,13 @@ async function OrganizerDashboardContent() {
                 )}
               </div>
               <span className={`badge ${STATUS_STYLES[e.status]}`}>{e.status}</span>
+              </Link>
             </li>
           ))}
         </ul>
       ) : (
         <div className="card text-center text-muted">
-          You haven&apos;t created any events yet. Event submission comes in the next step of the build.
+          You haven&apos;t created any events yet. Click <strong>New event</strong> to start.
         </div>
       )}
     </div>

@@ -38,4 +38,4 @@ where id = (select id from auth.users where email = 'you@example.com');
 
 ## Status
 
-v1 in progress: accounts and roles, venues, public listing done; event submission, approval and ticketing next.
+v1 feature-complete: accounts and roles, venues, event submission with guests and posters, admin review, public event pages, registration and QR tickets. Next: deployment, then v2 (emails, QR check-in, PDF export).

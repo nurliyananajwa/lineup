@@ -1,11 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { connection } from 'next/server'
 import type { Database } from '@/lib/database.types'
 
 // Supabase client for Server Components, Server Actions and Route Handlers.
 // It reads the logged-in user's session from cookies, so every query runs
 // as that user and the database's security rules (RLS) apply to it.
 export async function createClient() {
+  // Supabase checks whether the login session has expired, which reads the clock.
+  // connection() tells Next.js this always runs per request, never ahead of time.
+  await connection()
   const cookieStore = await cookies()
 
   return createServerClient<Database>(

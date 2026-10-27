@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { connection } from 'next/server'
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 
@@ -7,6 +8,8 @@ export type Role = 'organizer' | 'admin'
 // The logged-in user's profile, or null. cache() means several components
 // on the same page can call this without hitting the database twice.
 export const getProfile = cache(async () => {
+  // Checking the login session reads the clock (is it expired?), so it must run per request.
+  await connection()
   const supabase = await createClient()
   const { data: claims } = await supabase.auth.getClaims()
   const userId = claims?.claims?.sub
