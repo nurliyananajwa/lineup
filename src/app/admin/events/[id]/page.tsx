@@ -30,6 +30,12 @@ async function AdminEventContent({ params }: PageProps<'/admin/events/[id]'>) {
       )}
 
       {event.status === 'pending' && <ReviewForm action={reviewEvent.bind(null, event.id)} />}
+      {event.status === 'approved' && (
+        <div className="flex gap-2">
+          <Link href={`/check-in/${event.id}`} className="btn-primary">Open check-in</Link>
+          <Link href={`/events/${event.id}`} className="btn-secondary">View public page</Link>
+        </div>
+      )}
     </div>
   )
 }

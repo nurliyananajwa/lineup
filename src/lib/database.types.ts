@@ -102,6 +102,7 @@ export type Database = {
       tickets: {
         Row: {
           attended: boolean
+          checked_in_at: string | null
           created_at: string
           email: string
           event_id: number
@@ -111,6 +112,7 @@ export type Database = {
         }
         Insert: {
           attended?: boolean
+          checked_in_at?: string | null
           created_at?: string
           email: string
           event_id: number

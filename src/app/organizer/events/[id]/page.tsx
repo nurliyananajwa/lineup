@@ -87,7 +87,10 @@ async function OrganizerEventContent({ params, searchParams }: PageProps<'/organ
           {event.status === 'approved' && (
             <div className="card flex flex-wrap items-center justify-between gap-3">
               <p><span className="text-2xl font-bold">{registered}</span> <span className="text-muted">registered{event.venues ? ` of ${event.venues.capacity}` : ''}</span></p>
-              <Link href={`/events/${event.id}`} className="btn-secondary">View public page</Link>
+              <div className="flex gap-2">
+                <Link href={`/check-in/${event.id}`} className="btn-primary">Check-in</Link>
+                <Link href={`/events/${event.id}`} className="btn-secondary">View public page</Link>
+              </div>
             </div>
           )}
           <EventDetails event={event} guests={guests} showStatus />
