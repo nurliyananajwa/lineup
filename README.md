@@ -4,6 +4,18 @@ Organizers submit events, admins approve them, and anyone can register and get a
 
 A rebuild of an earlier CakePHP project on a modern stack, with the security rules enforced by the database itself.
 
+## Live demo
+
+**https://lineup-gilt.vercel.app**
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | admin.demo@example.com | Demo1234! |
+| Organizer | organizer.demo@example.com | Demo1234! |
+| Organizer | organizer2.demo@example.com | Demo1234! |
+
+Attendees don't need an account: open any event on the home page and register.
+
 ## Stack
 
 - **Next.js 16** (App Router, Server Actions, TypeScript) with Tailwind CSS
