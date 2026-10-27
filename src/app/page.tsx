@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import Loading from '@/components/Loading'
 import Link from 'next/link'
+import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { formatRange } from '@/lib/format'
 
@@ -11,6 +12,8 @@ export const metadata = { title: 'Upcoming events · Lineup' }
 // returns approved events to visitors. The filter is here so a logged-in
 // organizer doesn't see their own drafts mixed into the public list.
 async function HomePageContent() {
+  // "Upcoming" depends on the current time, so tell Next.js to work it out per request.
+  await connection()
   const supabase = await createClient()
   const { data: events, error } = await supabase
     .from('events')

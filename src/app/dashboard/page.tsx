@@ -4,10 +4,9 @@ import { redirect } from 'next/navigation'
 import { requireRole } from '@/lib/auth'
 
 // After login everyone lands here, then goes to the right home for their role.
-async function DashboardPageContent() {
+async function DashboardPageContent(): Promise<null> {
   const profile = await requireRole()
   redirect(profile.role === 'admin' ? '/admin' : '/organizer')
-  return null
 }
 
 // Reading the login cookie happens at request time, so it sits inside <Suspense>.
