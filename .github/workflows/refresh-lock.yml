@@ -1,0 +1,34 @@
+name: Refresh reviewed tooling dependencies
+
+on:
+  push:
+    branches: [fix/system-review-20261124]
+    paths: [.github/workflows/refresh-lock.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: fix/system-review-20261124
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm install --save-dev --save-exact eslint-config-next@16.4.6
+      - run: npm audit fix --ignore-scripts
+      - run: npm run check
+      - run: npm run build
+      - run: npm audit --audit-level=moderate
+      - name: Print proposed manifests for review (no repository writes)
+        shell: bash
+        run: |
+          node -e "const p=require('./package.json'); if(p.dependencies.next!=='16.4.6'||p.dependencies.react!=='19.3.1'||p.dependencies['react-dom']!=='19.3.1'||p.devDependencies['eslint-config-next']!=='16.4.6') throw Error('Unexpected pinned runtime versions')"
+          node -e "const fs=require('fs'); console.log('REVIEW_PACKAGE_BEGIN'); console.log(fs.readFileSync('package.json','utf8')); console.log('REVIEW_PACKAGE_END'); console.log('REVIEW_LOCK_BEGIN'); console.log(fs.readFileSync('package-lock.json','utf8')); console.log('REVIEW_LOCK_END')"
+
