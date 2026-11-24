@@ -98,4 +98,3 @@ jobs:
       - name: Stop disposable database
         if: always()
         run: supabase stop --no-backup
-

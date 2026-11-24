@@ -5,12 +5,15 @@ if (process.env.LINEUP_LOCAL_E2E !== '1') throw new Error('Explicit local E2E mo
 const fixtures = JSON.parse(await readFile('/tmp/lineup-browser-fixtures.json', 'utf8'))
 assert.ok(['localhost', '127.0.0.1'].includes(new URL(fixtures.baseUrl).hostname))
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ?? 'playwright')
-const browser = await chromium.launch({ headless: true })
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
+})
 const contexts = []
 const pageErrors = []
 
 async function pageFor(role, viewport = { width: 1280, height: 800 }) {
-  const context = await browser.newContext({ viewport, acceptDownloads: true })
+  const context = await browser.newContext({ viewport, acceptDownloads: true, permissions: ['camera'] })
   contexts.push(context)
   const page = await context.newPage()
   page.setDefaultTimeout(20000)
@@ -111,6 +114,12 @@ try {
 
   await organizer.goto(fixtures.baseUrl + '/check-in/' + eventId)
   const scanner = organizer.locator('section').filter({ has: organizer.getByRole('heading', { name: 'Scan tickets', exact: true }) })
+  await scanner.getByRole('button', { name: 'Start camera', exact: true }).click()
+  await scanner.getByRole('button', { name: 'Stop camera', exact: true }).waitFor()
+  assert.ok(await organizer.locator('video').evaluate(video => video.srcObject?.getTracks().some(track => track.readyState === 'live')))
+  await scanner.getByRole('button', { name: 'Stop camera', exact: true }).click()
+  assert.ok(await organizer.locator('video').evaluate(video => !video.srcObject || video.srcObject.getTracks().every(track => track.readyState === 'ended')))
+  console.log('PASS camera start and stop with a simulated camera')
   await scanner.getByLabel('Ticket code or link', { exact: true }).fill(token)
   await scanner.getByRole('button', { name: 'Check in', exact: true }).click()
   await scanner.getByText('CI Attendee A checked in', { exact: false }).waitFor()
