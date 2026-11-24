@@ -148,6 +148,10 @@ export type Database = {
     }
     Views: { [_ in never]: never }
     Functions: {
+      save_event_with_guests: {
+        Args: { p_event_id: number | null; p_event: Json; p_guests: Json; p_submit: boolean }
+        Returns: number
+      }
       get_ticket: {
         Args: { p_token: string }
         Returns: {

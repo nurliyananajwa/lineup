@@ -10,11 +10,12 @@ export const metadata = { title: 'My events · Lineup' }
 async function OrganizerDashboardContent() {
   const profile = await requireRole('organizer')
   const supabase = await createClient()
-  const { data: events } = await supabase
+  const { data: events, error } = await supabase
     .from('events')
     .select('id, name, status, starts_at, ends_at, review_comments')
     .eq('organizer_id', profile.id)
     .order('starts_at', { ascending: false })
+  if (error) throw new Error('Could not load your events.')
 
   const counts = (['draft', 'pending', 'approved', 'rejected'] as const).map((s) => ({
     status: s,

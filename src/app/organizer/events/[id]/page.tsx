@@ -36,7 +36,9 @@ async function OrganizerEventContent({ params, searchParams }: PageProps<'/organ
   let registered = 0
   if (event.status === 'approved') {
     const supabase = await createClient()
-    registered = (await supabase.from('tickets').select('id', { count: 'exact', head: true }).eq('event_id', id)).count ?? 0
+    const { count, error } = await supabase.from('tickets').select('id', { count: 'exact', head: true }).eq('event_id', id)
+    if (error) throw new Error('Could not load registration totals.')
+    registered = count ?? 0
   }
 
   return (

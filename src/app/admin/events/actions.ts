@@ -30,7 +30,8 @@ export async function reviewEvent(eventId: number, _prev: ReviewState, formData:
 
   // Look up the organizer's email now (while we're still inside the request),
   // then send the email after the response, so the admin isn't kept waiting.
-  const { data: contact } = await supabase.rpc('event_organizer_contact', { p_event_id: eventId })
+  const { data: contact, error: contactError } = await supabase.rpc('event_organizer_contact', { p_event_id: eventId })
+  if (contactError) console.error('[decision email] Could not load organizer contact details.')
   const organizer = contact?.[0]
   if (organizer?.email) {
     after(() =>

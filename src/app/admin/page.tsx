@@ -11,13 +11,19 @@ async function AdminDashboardContent() {
   const supabase = await createClient()
 
   // head: true = only count the rows, don't download them.
-  const count = async (status: string) =>
-    (await supabase.from('events').select('id', { count: 'exact', head: true }).eq('status', status)).count ?? 0
+  const count = async (status: string) => {
+    const { count, error } = await supabase.from('events').select('id', { count: 'exact', head: true }).eq('status', status)
+    if (error) throw new Error('Could not load event totals.')
+    return count ?? 0
+  }
   const [pending, approved, rejected, venues] = await Promise.all([
     count('pending'),
     count('approved'),
     count('rejected'),
-    supabase.from('venues').select('id', { count: 'exact', head: true }).then((r) => r.count ?? 0),
+    supabase.from('venues').select('id', { count: 'exact', head: true }).then((r) => {
+      if (r.error) throw new Error('Could not load venue totals.')
+      return r.count ?? 0
+    }),
   ])
 
   const stats = [

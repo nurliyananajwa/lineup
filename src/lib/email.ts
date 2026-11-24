@@ -20,12 +20,16 @@ function esc(value: string) {
 
 async function send(to: string, subject: string, html: string) {
   if (!resend) {
-    console.info(`[email skipped: no RESEND_API_KEY] ${subject} -> ${to}`)
     return
   }
-  const { error } = await resend.emails.send({ from, to, subject, html })
-  // An email failing must never break the action that triggered it, so we only log it.
-  if (error) console.error('[email failed]', subject, to, error.message)
+  try {
+    const { error } = await resend.emails.send({ from, to, subject, html })
+    if (error) console.error('[email failed]', error.name)
+  } catch {
+    // Network failures can throw rather than returning an error object.
+    // Do not put attendee email addresses or ticket links into application logs.
+    console.error('[email failed] Could not contact the email provider.')
+  }
 }
 
 function layout(title: string, body: string, button?: { href: string; label: string }) {
@@ -35,7 +39,7 @@ function layout(title: string, body: string, button?: { href: string; label: str
     <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:24px">
       <h1 style="font-size:20px;margin:0 0 12px">${title}</h1>
       ${body}
-      ${button ? `<p style="margin:24px 0 0"><a href="${button.href}" style="background:#4f46e5;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;display:inline-block">${button.label}</a></p>` : ''}
+      ${button ? `<p style="margin:24px 0 0"><a href="${esc(button.href)}" style="background:#4f46e5;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;display:inline-block">${button.label}</a></p>` : ''}
     </div>
     <p style="font-size:12px;color:#71717a;margin:16px 0 0">You're receiving this because of activity on Lineup.</p>
   </div></body></html>`

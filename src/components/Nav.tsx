@@ -9,7 +9,7 @@ export default async function Nav() {
 
   return (
     <header className="border-b border-zinc-200 bg-white">
-      <nav className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-3">
+      <nav className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3" aria-label="Main navigation">
         <Link href="/" className="text-lg font-bold tracking-tight text-indigo-700">Lineup</Link>
         <Link href="/" className="text-sm text-muted hover:text-zinc-900">Events</Link>
         {profile?.role === 'admin' && (

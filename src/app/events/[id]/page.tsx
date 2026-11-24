@@ -5,8 +5,9 @@ import { connection } from 'next/server'
 import Loading from '@/components/Loading'
 import EventDetails from '@/components/EventDetails'
 import RegisterForm from '@/components/RegisterForm'
-import { createClient } from '@/lib/supabase/server'
-import { getEventWithGuests, parseId } from '@/lib/queries'
+import { getProfile } from '@/lib/auth'
+import { createPublicClient } from '@/lib/supabase/public'
+import { getEventWithGuests, getPublicEventWithGuests, parseId } from '@/lib/queries'
 import { register } from './actions'
 
 async function PublicEventContent({ params }: PageProps<'/events/[id]'>) {
@@ -15,11 +16,14 @@ async function PublicEventContent({ params }: PageProps<'/events/[id]'>) {
   if (!id) notFound()
 
   // Visitors only ever get approved events back. Organizers can preview their own.
-  const { event, guests } = await getEventWithGuests(id)
+  const publicResult = await getPublicEventWithGuests(id)
+  const { event, guests } = !publicResult.event && await getProfile()
+    ? await getEventWithGuests(id) : publicResult
   if (!event) notFound()
 
-  const supabase = await createClient()
-  const { data: seatsLeft } = await supabase.rpc('seats_left', { p_event_id: id })
+  const supabase = await createPublicClient()
+  const { data: seatsLeft, error: seatsError } = await supabase.rpc('seats_left', { p_event_id: id })
+  if (seatsError) throw new Error('Could not check seat availability.')
   const started = new Date(event.starts_at) <= new Date()
   const open = event.status === 'approved' && !started && (seatsLeft ?? 0) > 0
 

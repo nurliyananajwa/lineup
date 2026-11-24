@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import Loading from '@/components/Loading'
 import Link from 'next/link'
 import { connection } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import { formatRange } from '@/lib/format'
 
 export const metadata = { title: 'Upcoming events · Lineup' }
@@ -14,7 +14,7 @@ export const metadata = { title: 'Upcoming events · Lineup' }
 async function HomePageContent() {
   // "Upcoming" depends on the current time, so tell Next.js to work it out per request.
   await connection()
-  const supabase = await createClient()
+  const supabase = await createPublicClient()
   const { data: events, error } = await supabase
     .from('events')
     .select('id, name, starts_at, ends_at, poster_url, venues(name)')

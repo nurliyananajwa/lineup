@@ -3,14 +3,9 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { safeNext } from '@/lib/navigation'
 
 export type FormState = { error?: string; message?: string } | undefined
-
-// Only allow redirects back into this site, never to another domain.
-function safeNext(next: FormDataEntryValue | null) {
-  const value = typeof next === 'string' ? next : ''
-  return value.startsWith('/') && !value.startsWith('//') ? value : '/dashboard'
-}
 
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
   const email = String(formData.get('email') ?? '').trim()
@@ -54,6 +49,7 @@ export async function signup(_prev: FormState, formData: FormData): Promise<Form
 
 export async function logout() {
   const supabase = await createClient()
-  await supabase.auth.signOut()
+  const { error } = await supabase.auth.signOut()
+  if (error) throw new Error('Could not log out. Please try again.')
   redirect('/')
 }

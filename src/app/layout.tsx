@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { Geist } from 'next/font/google'
+import localFont from 'next/font/local'
 import Nav from '@/components/Nav'
 import './globals.css'
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
+const geistSans = localFont({ src: './fonts/geist-latin.woff2', variable: '--font-geist-sans', weight: '100 900', display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'Lineup',

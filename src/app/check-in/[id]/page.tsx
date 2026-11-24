@@ -3,10 +3,12 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Loading from '@/components/Loading'
 import CheckInScanner from '@/components/CheckInScanner'
+import AttendanceButton from '@/components/AttendanceButton'
 import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { parseId } from '@/lib/queries'
 import { formatRange } from '@/lib/format'
+import { loadAttendees } from '@/lib/attendees'
 import { checkIn, setAttendance } from './actions'
 
 export const metadata = { title: 'Check-in · Lineup' }
@@ -20,22 +22,18 @@ async function CheckInContent({ params }: PageProps<'/check-in/[id]'>) {
   if (!id) notFound()
 
   const supabase = await createClient()
-  const { data: event } = await supabase
+  const { data: event, error: eventError } = await supabase
     .from('events')
     .select('id, name, status, organizer_id, starts_at, ends_at, venues(name, capacity)')
     .eq('id', id)
     .maybeSingle()
   // Only this event's organizer or an admin can run check-in, and only for approved events.
+  if (eventError) throw new Error('Could not load the event.')
   if (!event || event.status !== 'approved') notFound()
   if (profile.role !== 'admin' && event.organizer_id !== profile.id) notFound()
 
-  const { data: tickets } = await supabase
-    .from('tickets')
-    .select('id, name, email, attended, checked_in_at')
-    .eq('event_id', id)
-    .order('attended')
-    .order('name')
-  const list = tickets ?? []
+  const list = await loadAttendees(supabase, id)
+  list.sort((a, b) => Number(a.attended) - Number(b.attended) || a.name.localeCompare(b.name))
   const inCount = list.filter((t) => t.attended).length
   const back = profile.role === 'admin' ? `/admin/events/${id}` : `/organizer/events/${id}`
 
@@ -77,14 +75,10 @@ async function CheckInContent({ params }: PageProps<'/check-in/[id]'>) {
                     <span className="badge bg-emerald-100 text-emerald-800">
                       In{t.checked_in_at ? ` · ${time(t.checked_in_at)}` : ''}
                     </span>
-                    <form action={setAttendance.bind(null, id, t.id, false)}>
-                      <button className="text-sm text-muted hover:text-zinc-900 hover:underline">Undo</button>
-                    </form>
+                    <AttendanceButton action={setAttendance.bind(null, id, t.id, false)} undo />
                   </>
                 ) : (
-                  <form action={setAttendance.bind(null, id, t.id, true)}>
-                    <button className="btn-secondary px-3 py-1.5">Check in</button>
-                  </form>
+                  <AttendanceButton action={setAttendance.bind(null, id, t.id, true)} undo={false} />
                 )}
               </li>
             ))}
