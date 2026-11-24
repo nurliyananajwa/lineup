@@ -41,9 +41,9 @@ export default function EventForm({ action, venues, initial, posterUrl }: Props)
           <input name="ends_at" type="datetime-local" required defaultValue={v.ends_at} />
         </label>
         <label className="field">
-          <span>Venue</span>
-          <select name="venue_id" defaultValue={v.venue_id}>
-            <option value="">Choose a venue…</option>
+          <span id="event-venue-label">Venue</span>
+          <select name="venue_id" aria-labelledby="event-venue-label" defaultValue={v.venue_id}>
+            <option value="">Choose a venue.</option>
             {venues.map((venue) => (
               <option key={venue.id} value={venue.id}>
                 {venue.name} (up to {venue.capacity.toLocaleString()})
@@ -81,7 +81,7 @@ export default function EventForm({ action, venues, initial, posterUrl }: Props)
 
       <div className="flex flex-wrap gap-3">
         <button name="intent" value="submit" className="btn-primary" disabled={pending}>
-          {pending ? 'Saving…' : 'Submit for approval'}
+          {pending ? 'Saving.' : 'Submit for approval'}
         </button>
         <button name="intent" value="draft" className="btn-secondary" disabled={pending}>Save as draft</button>
       </div>
@@ -131,3 +131,4 @@ function GuestsEditor({ initial }: { initial: GuestInput[] }) {
     </section>
   )
 }
+
