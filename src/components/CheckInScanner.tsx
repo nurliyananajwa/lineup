@@ -68,8 +68,7 @@ export default function CheckInScanner({ checkIn }: Props) {
         return
       }
       if (!mounted.current || !videoRef.current) return
-      scannerRef.current?.destroy()
-      const scanner = new QrScanner(videoRef.current, (r) => handle(r.data), {
+      const scanner = scannerRef.current ?? new QrScanner(videoRef.current, (r) => handle(r.data), {
         preferredCamera: 'environment',
         highlightScanRegion: true,
         maxScansPerSecond: 5,
@@ -79,8 +78,8 @@ export default function CheckInScanner({ checkIn }: Props) {
       if (mounted.current) setCameraOn(true)
       else scanner.destroy()
     } catch {
-      scannerRef.current?.destroy()
-      scannerRef.current = null
+      // Keep the scanner reusable; destroy() schedules a delayed stream stop.
+      await scannerRef.current?.pause(true)
       if (mounted.current) setCameraError('Couldn’t open the camera. Allow camera access in your browser, then try again.')
     } finally {
       if (mounted.current) setCameraStarting(false)
@@ -88,8 +87,8 @@ export default function CheckInScanner({ checkIn }: Props) {
   }
 
   function stopCamera() {
-    scannerRef.current?.destroy()
-    scannerRef.current = null
+    // Release the camera immediately and reuse this scanner on the next start.
+    void scannerRef.current?.pause(true)
     setCameraOn(false)
   }
 
