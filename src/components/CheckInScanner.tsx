@@ -80,6 +80,7 @@ export default function CheckInScanner({ checkIn }: Props) {
     } catch {
       // Keep the scanner reusable; destroy() schedules a delayed stream stop.
       await scannerRef.current?.pause(true)
+      scannerRef.current?.stop()
       if (mounted.current) setCameraError('Couldn’t open the camera. Allow camera access in your browser, then try again.')
     } finally {
       if (mounted.current) setCameraStarting(false)
@@ -89,6 +90,8 @@ export default function CheckInScanner({ checkIn }: Props) {
   function stopCamera() {
     // Release the camera immediately and reuse this scanner on the next start.
     void scannerRef.current?.pause(true)
+    // Mark it inactive so returning to this tab cannot restart a stopped camera.
+    scannerRef.current?.stop()
     setCameraOn(false)
   }
 
