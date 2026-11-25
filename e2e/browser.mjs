@@ -155,12 +155,12 @@ try {
   assert.equal(await organizer.getByTestId('metric-circle-check').textContent(), String(fixtures.dashboardCheckedIn))
   assert.equal((await organizer.content()).includes('PRIVATE OTHER EVENT'), false)
   await organizer.getByLabel('Search your events', { exact: true }).fill(fixtures.eventName)
-  await organizer.getByRole('link', { name: fixtures.eventName, exact: true }).waitFor()
+  await organizer.getByRole('region', { name: 'My events', exact: true }).getByRole('link', { name: fixtures.eventName, exact: true }).waitFor()
   await organizer.getByLabel('Search your events', { exact: true }).fill('no such event 123')
   await organizer.getByRole('heading', { name: 'No matching events', exact: true }).waitFor()
   await organizer.getByRole('button', { name: 'Reset filters', exact: true }).click()
   await organizer.getByRole('button', { name: 'Pending', exact: true }).click()
-  await organizer.getByRole('link', { name: 'Design for Everyone', exact: true }).waitFor()
+  await organizer.getByRole('region', { name: 'My events', exact: true }).getByRole('link', { name: 'Design for Everyone', exact: true }).waitFor()
   await organizer.getByRole('button', { name: 'All events', exact: true }).click()
   await organizer.getByLabel('Registration period').selectOption('30')
   await organizer.getByRole('region', { name: 'Registration trend' }).getByText('View chart data', { exact: true }).click()
@@ -170,6 +170,8 @@ try {
   await organizer.getByRole('button', { name: 'Previous month', exact: true }).click()
   const calendarDay = organizer.getByRole('region', { name: 'Event calendar', exact: true }).getByRole('group').getByRole('button').first()
   await calendarDay.click()
+  await organizer.getByRole('button', { name: 'Next month', exact: true }).click()
+  await organizer.getByRole('button', { name: 'Previous month', exact: true }).click()
   console.log('PASS dashboard real totals, ownership, search, filters, chart data and calendar')
 
   const capture = async (page, name) => {
