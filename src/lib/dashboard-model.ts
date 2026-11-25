@@ -48,7 +48,7 @@ export function buildDashboardModel(source: DashboardSourceEvent[], tickets: Das
     activity.push({ id: `created-${event.id}`, label: 'Event created', event: event.name, at: event.created_at, href, tone: 'purple' })
     if (event.reviewed_at && ['approved', 'rejected'].includes(event.status)) activity.push({ id: `review-${event.id}`, label: event.status === 'approved' ? 'Event approved' : 'Changes requested', event: event.name, at: event.reviewed_at, href, tone: event.status === 'approved' ? 'green' : 'amber' })
     const total = totals.get(event.id)
-    if (total) activity.push({ id: `registered-${event.id}`, label: 'Latest registration', event: event.name, at: total.latest, href, tone: 'blue' })
+    if (total) activity.push({ id: `registered-${event.id}`, label: 'New registration', event: event.name, at: total.latest, href, tone: 'blue' })
   }
   return {
     now, events, trend, activity: activity.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 5),

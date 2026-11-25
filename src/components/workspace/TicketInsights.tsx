@@ -27,14 +27,12 @@ export default function TicketInsights({ total, checkedIn, events, preview }: {
         <h2 id="ticket-insights-title">Ticket &amp; attendance</h2>
         <Icon name="ticket" />
       </div>
-      <div className="ticket-summary">
-        <strong>{formatCount(total)}</strong><span>registrations</span>
-      </div>
       <div className="ticket-rank-toggle" role="group" aria-label="Rank events by">
         <button type="button" aria-pressed={metric === 'registrations'} onClick={() => setMetric('registrations')}>Registrations</button>
         <button type="button" aria-pressed={metric === 'checkedIn'} onClick={() => setMetric('checkedIn')}>Check-ins</button>
       </div>
       <div aria-live="polite">
+        <h3 className="ticket-ranking-title">Top events by {metric === 'registrations' ? 'registrations' : 'check-ins'}</h3>
         {ranked.length ? (
           <ol className="ticket-ranking">
             {ranked.map(event => {
@@ -68,7 +66,7 @@ export default function TicketInsights({ total, checkedIn, events, preview }: {
         </div>
         <dl className="attendance-legend">
           <div><dt><span />Checked in</dt><dd>{formatCount(checkedIn)}</dd></div>
-          <div><dt><span />Awaiting check-in</dt><dd>{formatCount(total - checkedIn)}</dd></div>
+          <div><dt><span />Awaiting check-in</dt><dd>{formatCount(Math.max(0, total - checkedIn))}</dd></div>
         </dl>
       </div>
     </section>

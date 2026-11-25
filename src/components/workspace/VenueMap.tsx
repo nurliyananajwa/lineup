@@ -19,6 +19,8 @@ function osmEmbed([latitude, longitude]: [number, number]) {
 
 export default function VenueMap({ events, preview }: { events: DashboardEvent[]; preview: boolean }) {
   const [selected, setSelected] = useState<number>()
+  const [openedMap, setOpenedMap] = useState<number>()
+  const [loadedMap, setLoadedMap] = useState<number>()
   const venues = events.filter(event => event.address.trim())
   const event = venues.find(event => event.id === selected) ?? venues[0]
   const address = event ? [event.venue, event.address].join(', ') : ''
@@ -39,7 +41,7 @@ export default function VenueMap({ events, preview }: { events: DashboardEvent[]
         <div className="venue-map-content">
           <div className="venue-event-list" role="group" aria-label="Upcoming events">
             {venues.map(venue => (
-              <button type="button" key={venue.id} aria-pressed={venue.id === event.id} onClick={() => setSelected(venue.id)}>
+              <button type="button" key={venue.id} aria-pressed={venue.id === event.id} onClick={() => { setSelected(venue.id); setOpenedMap(undefined); setLoadedMap(undefined) }}>
                 <span className="venue-event-photo">
                   {venue.poster ? <Image src={venue.poster} alt="" width={48} height={48} unoptimized /> : <Icon name="calendar-event" />}
                 </span>
@@ -52,9 +54,6 @@ export default function VenueMap({ events, preview }: { events: DashboardEvent[]
             ))}
           </div>
           <div className="venue-map-preview">
-            {embed ? <iframe title={`Map of ${event.venue}`} src={embed} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" /> : (
-              <div className="venue-map-placeholder"><Icon name="map-pin" /><span>Open directions to see this venue on a map.</span></div>
-            )}
             <div className="venue-map-location" aria-live="polite">
               <strong>{event.venue}</strong>
               <span>{event.address}</span>
@@ -62,9 +61,22 @@ export default function VenueMap({ events, preview }: { events: DashboardEvent[]
                 Get directions <Icon name="arrow-up-right" />
               </a>
             </div>
+            {embed && openedMap !== event.id && (
+              <button type="button" className="workspace-text-link map-open" onClick={() => setOpenedMap(event.id)}>
+                <Icon name="map-pin" />Load interactive map
+              </button>
+            )}
+            {embed && openedMap === event.id && (
+              <>
+                {loadedMap !== event.id && <p className="map-help" role="status">Loading the map preview…</p>}
+                <iframe title={`Map of ${event.venue}`} src={embed} onLoad={() => setLoadedMap(event.id)}
+                  referrerPolicy="strict-origin-when-cross-origin" />
+                <p className="map-help">If the preview stays blank, use Get directions above.</p>
+              </>
+            )}
           </div>
         </div>
-      ) : <p className="venue-map-empty">Add an address to an upcoming event’s venue to get directions.</p>}
+      ) : <p className="venue-map-empty">No upcoming events have a venue address. Add one in the event details to show directions here.</p>}
     </section>
   )
 }

@@ -41,7 +41,7 @@ try {
   await signup.getByLabel('Password', { exact: true }).fill(fixtures.signup.password)
   await signup.getByRole('button', { name: 'Sign up', exact: true }).click()
   await signup.waitForURL('**/organizer')
-  await signup.getByRole('heading', { name: 'Your next event starts here', exact: true }).waitFor()
+  await signup.getByRole('heading', { name: 'No events yet', exact: true }).waitFor()
   assert.equal(await signup.getByTestId('metric-ticket').textContent(), '0')
   await signup.goto(fixtures.baseUrl + '/admin')
   await signup.waitForURL('**/organizer')
