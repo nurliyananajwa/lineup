@@ -176,6 +176,11 @@ try {
 
   const capture = async (page, name) => {
     await page.evaluate(() => document.fonts.ready)
+    await page.evaluate(async () => {
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+      window.scrollTo(0, 0)
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    })
     const image = await page.screenshot({ type: 'jpeg', quality: 75, fullPage: true, animations: 'disabled' })
     console.log(`LINEUP_SCREENSHOT_START:${name}`)
     console.log(image.toString('base64'))
@@ -190,6 +195,10 @@ try {
   await capture(admin, 'admin-desktop')
   await organizer.setViewportSize({ width: 375, height: 812 })
   assert.ok(await organizer.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
+  for (const section of ['Schedule', 'Event calendar']) {
+    const panel = await organizer.getByRole(section === 'Schedule' ? 'complementary' : 'region', { name: section, exact: true }).boundingBox()
+    assert.ok(panel && panel.width >= 330, `${section} should fill the mobile content width`)
+  }
   await organizer.getByRole('button', { name: 'Open navigation', exact: true }).click()
   await organizer.getByRole('dialog', { name: 'Workspace menu', exact: true }).waitFor()
   await organizer.keyboard.press('Escape')

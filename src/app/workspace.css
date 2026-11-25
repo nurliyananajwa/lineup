@@ -177,4 +177,5 @@
 .activity-list a{font-size:11px;color:#7d6c8b}
 .activity-list time{color:#8a7a98}
 .workspace-small-note p,.workspace-small-note strong{color:#847191}
+@media(max-width:539px){.dashboard-secondary-column{align-items:stretch}.dashboard-secondary-column>.dashboard-panel{width:100%}}
 @media(prefers-reduced-motion:reduce){.workspace-shell *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
