@@ -62,30 +62,43 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
       </Link>
     </header>
 
-    {needsAttention.length > 0 && (
-      <section className="needs-attention" aria-labelledby="needs-attention-title">
-        <h2 id="needs-attention-title">Needs attention</h2>
-        <ul>
-          {needsAttention.slice(0, 2).map(event => (
-            <li key={event.id}>
-              <div><strong>{event.name}</strong><p>{event.reviewComment || 'The reviewer requested changes to this event.'}</p></div>
-              {preview ? (
-                <a href="#events" className="workspace-text-link" onClick={() => { setSearch(event.name); chooseFilter('rejected') }}>
-                  Review requested changes <Icon name="arrow-right" />
-                </a>
-              ) : (
-                <Link href={event.href} className="workspace-text-link">Review requested changes <Icon name="arrow-right" /></Link>
-              )}
-            </li>
-          ))}
-        </ul>
-        {needsAttention.length > 2 && (
-          <a href="#events" className="workspace-text-link" onClick={() => { setSearch(''); chooseFilter('rejected') }}>
-            View all {needsAttention.length} events that need changes <Icon name="arrow-right" />
+    <div className="workspace-priorities">
+      {needsAttention.length > 0 && (
+        <section className="needs-attention" aria-labelledby="needs-attention-title">
+          <h2 id="needs-attention-title">Needs attention</h2>
+          <ul>
+            {needsAttention.slice(0, 2).map(event => (
+              <li key={event.id}>
+                <div><strong>{event.name}</strong><p>{event.reviewComment || 'The reviewer requested changes to this event.'}</p></div>
+                {preview ? (
+                  <a href="#events" className="workspace-text-link" onClick={() => { setSearch(event.name); chooseFilter('rejected') }}>
+                    Review requested changes <Icon name="arrow-right" />
+                  </a>
+                ) : (
+                  <Link href={event.href} className="workspace-text-link">Review requested changes <Icon name="arrow-right" /></Link>
+                )}
+              </li>
+            ))}
+          </ul>
+          {needsAttention.length > 2 && (
+            <a href="#events" className="workspace-text-link" onClick={() => { setSearch(''); chooseFilter('rejected') }}>
+              View all {needsAttention.length} events that need changes <Icon name="arrow-right" />
+            </a>
+          )}
+        </section>
+      )}
+      <section className="review-summary" aria-labelledby="event-queue-title">
+        <div>
+          <h2 id="event-queue-title">{admin ? 'Approval queue' : 'Pending review'}</h2>
+          <p><strong>{number(data.pending)}</strong> {data.pending === 1 ? 'event awaiting review' : 'events awaiting review'}</p>
+        </div>
+        {data.pending > 0 && (
+          <a href="#events" className="workspace-text-link" onClick={() => { setSearch(''); chooseFilter('pending') }}>
+            Show pending events <Icon name="arrow-right" />
           </a>
         )}
       </section>
-    )}
+    </div>
     <div className="dashboard-columns">
       <div className="dashboard-primary-column">
         <section className="dashboard-stats" aria-label="Event summary">
@@ -100,54 +113,6 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
             </div>
           ))}
         </section>
-      <div className="dashboard-analytics">
-        <TicketInsights total={data.registrations} checkedIn={data.checkedIn} events={data.events} preview={preview} />
-        <section className="dashboard-panel registration-panel" id="registrations" aria-label="Registration trend">
-          <div className="panel-heading">
-            <h2>Registration trend</h2>
-            <select aria-label="Registration period" value={period} onChange={event => setPeriod(Number(event.target.value))}>
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-            </select>
-          </div>
-          <div className="trend-total">
-            <strong>{number(recentCount)}</strong><span>registrations in the last {period} days</span>
-          </div>
-          <RegistrationChart key={period} points={points} />
-          <div className="chart-caption"><span className="legend-dot" />Daily registrations<span>Malaysia time</span></div>
-          <details className="chart-data">
-            <summary>View chart data</summary>
-            <table>
-              <caption>Registrations by day</caption>
-              <thead><tr><th scope="col">Date</th><th scope="col">Registrations</th></tr></thead>
-              <tbody>{points.map(point => <tr key={point.date}><th scope="row">{point.date}</th><td>{point.count}</td></tr>)}</tbody>
-            </table>
-          </details>
-        </section>
-      </div>
-      <section className="dashboard-panel status-panel" aria-label="Event status breakdown"><div className="panel-heading"><h2>Event overview</h2><Icon name="chart-bar" /></div><div className="status-total"><strong>{number(data.events.length)}</strong><span>total events</span></div><div className="status-breakdown">{data.statuses.map(s => <div key={s.status}><div className="status-breakdown-label"><span><span className={`status-dot dot-${s.status}`} />{s.status === 'pending' ? 'Pending' : statusLabel[s.status]}</span><strong>{s.count}</strong></div><div className="status-track"><span className={`fill-${s.status}`} style={{ width: `${data.events.length ? s.count / data.events.length * 100 : 0}%` }} /></div></div>)}</div></section>
-      {data.upcoming.length > 1 && (
-        <section className="dashboard-panel upcoming-schedule" aria-labelledby="schedule-title">
-          <div className="panel-heading">
-            <h2 id="schedule-title">Coming up after next</h2>
-            <a href="#events" className="workspace-text-link" onClick={() => { setSearch(''); chooseFilter('upcoming') }}>
-              View upcoming events <Icon name="arrow-right" />
-            </a>
-          </div>
-          <ul>
-            {data.upcoming.slice(1, 4).map(event => (
-              <li key={event.id}>
-                <time dateTime={event.startsAt}>{date(event.startsAt, { day: 'numeric', month: 'short' })}</time>
-                <div>
-                  <strong>{preview ? event.name : <Link href={event.href}>{event.name}</Link>}</strong>
-                  <p>{event.venue}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      <VenueMap events={data.upcoming} preview={preview} />
       <section className="dashboard-panel events-panel" id="events" tabIndex={-1} aria-label={admin ? 'Event management' : 'My events'}>
         <div className="panel-heading events-heading">
           <h2>{admin ? 'Event management' : 'My events'}<span className="quiet-count">{data.events.length}</span></h2>
@@ -226,6 +191,33 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
           </div>
         )}
       </section>
+      <div className="dashboard-analytics">
+        <TicketInsights total={data.registrations} checkedIn={data.checkedIn} events={data.events} preview={preview} />
+        <section className="dashboard-panel registration-panel" id="registrations" aria-label="Registration trend">
+          <div className="panel-heading">
+            <h2>Registration trend</h2>
+            <select aria-label="Registration period" value={period} onChange={event => setPeriod(Number(event.target.value))}>
+              <option value={7}>Last 7 days</option>
+              <option value={30}>Last 30 days</option>
+            </select>
+          </div>
+          <div className="trend-total">
+            <strong>{number(recentCount)}</strong><span>registrations in the last {period} days</span>
+          </div>
+          <RegistrationChart key={period} points={points} />
+          <div className="chart-caption"><span className="legend-dot" />Daily registrations<span>Malaysia time</span></div>
+          <details className="chart-data">
+            <summary>View chart data</summary>
+            <table>
+              <caption>Registrations by day</caption>
+              <thead><tr><th scope="col">Date</th><th scope="col">Registrations</th></tr></thead>
+              <tbody>{points.map(point => <tr key={point.date}><th scope="row">{point.date}</th><td>{point.count}</td></tr>)}</tbody>
+            </table>
+          </details>
+        </section>
+      </div>
+      <section className="dashboard-panel status-panel" aria-label="Event status breakdown"><div className="panel-heading"><h2>Event overview</h2><Icon name="chart-bar" /></div><div className="status-total"><strong>{number(data.events.length)}</strong><span>total events</span></div><div className="status-breakdown">{data.statuses.map(s => <div key={s.status}><div className="status-breakdown-label"><span><span className={`status-dot dot-${s.status}`} />{s.status === 'pending' ? 'Pending' : statusLabel[s.status]}</span><strong>{s.count}</strong></div><div className="status-track"><span className={`fill-${s.status}`} style={{ width: `${data.events.length ? s.count / data.events.length * 100 : 0}%` }} /></div></div>)}</div></section>
+      <VenueMap events={data.upcoming} preview={preview} />
     </div>
     <aside className="dashboard-secondary-column" aria-label="Schedule">
       <div className="dashboard-updates-stack">
@@ -290,21 +282,6 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
         </section>
       </div>
       <EventCalendar events={data.events} now={data.now} />
-      <section className="dashboard-panel review-summary" aria-labelledby="event-queue-title">
-        <div className="panel-heading">
-          <h2 id="event-queue-title">{admin ? 'Approval queue' : 'Pending review'}</h2>
-          <Icon name="clock" />
-        </div>
-        <div className="review-summary-body">
-          <strong>{number(data.pending)}</strong>
-          <p>{data.pending === 1 ? 'Event awaiting review' : 'Events awaiting review'}</p>
-          {data.pending > 0 && (
-            <a className="workspace-text-link" href="#events" onClick={() => { setSearch(''); chooseFilter('pending') }}>
-              Show pending events <Icon name="arrow-right" />
-            </a>
-          )}
-        </div>
-      </section>
     </aside></div>
   </div>
 }
