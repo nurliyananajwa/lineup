@@ -61,6 +61,7 @@ try {
   await days.first().click()
   assert.equal(await days.first().getAttribute('aria-pressed'), 'true')
   const eventList = page.getByRole('region', { name: 'My events', exact: true })
+  assert.match(await eventList.getByRole('row').nth(1).innerText(), /Design for Everyone[\s\S]*Pending review/)
   await page.getByRole('link', { name: 'Review requested changes' }).click()
   await eventList.getByRole('link', { name: 'Photography Walk', exact: true }).waitFor()
   await eventList.getByLabel('Search your events').fill('')

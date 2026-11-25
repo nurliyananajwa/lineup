@@ -38,6 +38,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
   const [latestUpdate, ...earlierUpdates] = data.activity
   const needsAttention = admin ? [] : data.events.filter(event => event.status === 'rejected')
   const isUpcoming = filter === 'upcoming'
+  const pendingFirst = filter === 'all'
   const attendanceRate = data.registrations ? Math.round(data.checkedIn / data.registrations * 100) : 0
   const stats: { label: string; value: number; note: string; icon: IconName; tone: string }[] = [
     { label: 'Upcoming events', value: data.upcoming.length, note: 'Approved & on the calendar', icon: 'calendar-event', tone: 'purple' },
@@ -46,7 +47,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
     { label: 'Checked in', value: data.checkedIn, note: data.registrations ? `${attendanceRate}% of registered attendees` : 'No registered attendees yet', icon: 'circle-check', tone: 'green' },
   ]
   const filtered = data.events.filter(e => (filter === 'all' || (filter === 'upcoming' ? data.upcoming.some(u => u.id === e.id) : e.status === filter)) && `${e.name} ${e.venue}`.toLowerCase().includes(search.trim().toLowerCase())).sort((a, b) => {
-    if (admin && filter === 'all' && (a.status === 'pending') !== (b.status === 'pending')) return a.status === 'pending' ? -1 : 1
+    if (pendingFirst && (a.status === 'pending') !== (b.status === 'pending')) return a.status === 'pending' ? -1 : 1
     return isUpcoming ? a.startsAt.localeCompare(b.startsAt) : b.startsAt.localeCompare(a.startsAt)
   })
   function chooseFilter(value: string) { setFilter(value); setLimit(5) }
@@ -135,7 +136,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
         </div>
         {filtered.length > 0 ? (
           <>
-            <p className="event-sort">{isUpcoming ? 'Date: soonest first' : admin && filter === 'all' ? 'Pending first, then latest event date' : 'Date: latest first'}</p>
+            <p className="event-sort">{isUpcoming ? 'Date: soonest first' : pendingFirst ? 'Pending review first, then latest event date' : 'Date: latest first'}</p>
             <div className="events-table-wrapper">
               <table className="events-table">
                 <thead><tr><th scope="col">Event</th><th scope="col">Status</th><th scope="col">Registrations</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
