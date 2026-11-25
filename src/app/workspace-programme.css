@@ -104,3 +104,25 @@
   .event-gallery-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .dashboard-secondary-column > .dashboard-panel { width: 100%; }
 }
+
+.workspace-brand { gap: 12px; font-size: 31px; margin: 0 8px 38px; }
+.workspace-brand-mark { width: 42px; height: 42px; border-radius: 12px; }
+.workspace-nav-caption { padding-inline: 12px; font-size: 11px; margin-bottom: 14px; }
+.workspace-nav { gap: 7px; }
+.workspace-nav a { gap: 13px; min-height: 52px; padding: 12px 14px; font-size: 15px; }
+.workspace-nav .workspace-icon { width: 22px; height: 22px; }
+.workspace-account { gap: 12px; padding: 17px 8px 12px; }
+.workspace-account .workspace-avatar { width: 40px; height: 40px; font-size: 13px; }
+.workspace-account strong { max-width: none; font-size: 14px; }
+.workspace-account div > span { font-size: 12px; }
+.workspace-public-link, .workspace-logout { font-size: 13px; }
+.workspace-logout { min-height: 44px; }
+
+@media (min-width: 1024px) {
+  .workspace-shell { --workspace-sidebar-width: clamp(244px, 19vw, 280px); }
+  .workspace-sidebar { width: var(--workspace-sidebar-width); padding: 34px 22px 20px; }
+  .workspace-body { margin-left: var(--workspace-sidebar-width); }
+}
+@media (max-width: 1023px) {
+  .workspace-mobile-menu[open] { width: 324px; }
+}
