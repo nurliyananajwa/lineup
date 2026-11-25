@@ -1,32 +1,32 @@
 .workspace-shell {
-  --ws-purple: #793384;
-  --ws-purple-dark: #5d2267;
-  --ws-ink: #232843;
-  --ws-muted: #60657a;
-  --ws-border: #e8e6ef;
-  --ws-surface: #f7f7fb;
+  --ws-purple: #2359ba;
+  --ws-purple-dark: #19458f;
+  --ws-ink: #242a33;
+  --ws-muted: #566171;
+  --ws-border: #e2e8f0;
+  --ws-surface: #f5f7fa;
 }
 .workspace-sidebar, .workspace-mobile-menu[open] {
-  background: #eeecf9;
-  color: #242944;
-  border-color: #e5e1f2;
+  background: #ffffff;
+  color: #242a33;
+  border-color: #e2e8f0;
 }
-.workspace-brand, .workspace-account strong { color: #252847; }
-.workspace-brand-mark { background: #84388f; color: white; }
-.brand-period { color: #84388f; }
+.workspace-brand, .workspace-account strong { color: #242a33; }
+.workspace-brand-mark { background: #2359ba; color: white; }
+.brand-period { color: #2359ba; }
 .workspace-nav-caption, .workspace-public-link, .workspace-logout,
-.workspace-account div > span, .workspace-nav a { color: #535675; }
-.workspace-nav a:hover, .workspace-nav a.is-active { background: #e7dff7; color: #71317e; }
-.nav-active-dot { background: #84388f; }
-.workspace-account { border-color: #dcd7ec; }
+.workspace-account div > span, .workspace-nav a { color: #4e5b6b; }
+.workspace-nav a:hover, .workspace-nav a.is-active { background: #eaf2ff; color: #1f4e9e; }
+.nav-active-dot { background: #2359ba; }
+.workspace-account { border-color: #e2e8f0; }
 .workspace-role, .workspace-avatar, .development-preview-bar {
-  color: #64316d;
-  border-color: #e8dcf1;
-  background: #f2eafa;
+  color: #1f4e9e;
+  border-color: #d9e5f6;
+  background: #eef4fc;
 }
-.development-preview-bar nav { border-color: #e8dcf1; background: white; }
-.development-preview-bar nav a[aria-current=page] { background: #793384; }
-.preview-signup { color: #64316d; }
+.development-preview-bar nav { border-color: #d9e5f6; background: white; }
+.development-preview-bar nav a[aria-current=page] { background: #2359ba; }
+.preview-signup { color: #1f4e9e; }
 
 .dashboard-masthead {
   display: flex;
@@ -43,25 +43,42 @@
 .dashboard-stats { gap: 10px; margin: 0; }
 .dashboard-stat { padding: 12px; }
 .dashboard-stat > strong { margin: 4px 0; font-size: 27px; }
-.stat-icon.tone-purple, .activity-icon.tone-purple { background: #f2e4fa; color: #793384; }
-.stat-icon.tone-blue, .activity-icon.tone-blue { background: #eaedfb; color: #49569e; }
+.stat-icon.tone-purple, .activity-icon.tone-purple { background: #eaf2ff; color: #2359ba; }
+.stat-icon.tone-blue, .activity-icon.tone-blue { background: #e9f3fa; color: #285777; }
+.workspace-shell :is(a, button, input, select):focus-visible { outline-color: #3771ce; }
+.workspace-shell .event-thumbnail,
+.workspace-shell .quiet-count { background: #eef3fa; color: #405775; }
+.workspace-shell progress,
+.workspace-shell progress::-webkit-progress-bar { background: #e6edf7; }
+.workspace-shell progress::-webkit-progress-value { background: #3771ce; }
+.workspace-shell progress::-moz-progress-bar { background: #3771ce; }
+.workspace-shell .calendar-days button.is-today {
+  background: #eef4fc;
+  box-shadow: inset 0 0 0 1px #c4d6ee;
+  color: #1f4e9e;
+}
+.workspace-shell .calendar-days button.is-selected { background: #2359ba; color: white; }
+.workspace-shell .calendar-days .is-selected .calendar-event-dot { background: white; }
+.workspace-shell .calendar-days button:not(.is-selected):hover { background: #eaf2ff; color: #1f4e9e; }
+.venue-map-content select { background: #f5f7fa; }
+.area-grid { stroke: #e2e8f0; }
 .dashboard-analytics { grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr); gap: 12px; }
 .dashboard-panel, .dashboard-stat { border-radius: 13px; }
 .panel-heading { padding-top: 15px; }
 .panel-heading h2 { font-size: 15px; }
-.attendance-ring { background: conic-gradient(#a448ad var(--attendance-sweep), #e7e8f3 0); }
-.attendance-legend dt span, .legend-dot, .calendar-event-dot { background: #a448ad; }
-.attendance-legend div:last-child dt span { background: #a9aec7; }
-.registration-bar { fill: #c88cdb; }
-.registration-bar:hover, .registration-bar.is-latest { fill: #793384; }
-.event-tabs button.is-selected, .event-tabs button:hover { background: #f4e9f9; color: #71317e; }
+.attendance-ring { background: conic-gradient(#3771ce var(--attendance-sweep), #e6edf7 0); }
+.attendance-legend dt span, .legend-dot, .calendar-event-dot { background: #3771ce; }
+.attendance-legend div:last-child dt span { background: #a9b8cb; }
+.registration-bar { fill: #7fa9e7; }
+.registration-bar:hover, .registration-bar.is-latest { fill: #2359ba; }
+.event-tabs button.is-selected, .event-tabs button:hover { background: #eaf2ff; color: #1f4e9e; }
 .status-panel { min-height: 0; }
 
 .featured-event-image, .gallery-event-image {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: #e8e4f7;
+  background: #e8eef7;
 }
 .featured-event-image { aspect-ratio: 16 / 9; margin: 12px 12px 0; border-radius: 9px; }
 .featured-event-image img, .gallery-event-image img { object-fit: cover; }
@@ -72,7 +89,7 @@
   border-radius: 5px;
   padding: 4px 7px;
   background: #fff;
-  color: #4a335f;
+  color: #24354e;
   font-size: 11px;
   font-weight: 650;
 }
@@ -105,17 +122,17 @@
   .dashboard-secondary-column > .dashboard-panel { width: 100%; }
 }
 
-.workspace-brand { gap: 12px; font-size: 31px; margin: 0 8px 38px; }
+.workspace-brand { gap: 12px; font-size: 28px; margin: 0 8px 38px; }
 .workspace-brand-mark { width: 42px; height: 42px; border-radius: 12px; }
 .workspace-nav-caption { padding-inline: 12px; font-size: 11px; margin-bottom: 14px; }
 .workspace-nav { gap: 7px; }
-.workspace-nav a { gap: 13px; min-height: 52px; padding: 12px 14px; font-size: 15px; }
+.workspace-nav a { gap: 13px; min-height: 52px; padding: 12px 14px; font-size: 13px; }
 .workspace-nav .workspace-icon { width: 22px; height: 22px; }
 .workspace-account { gap: 12px; padding: 17px 8px 12px; }
 .workspace-account .workspace-avatar { width: 40px; height: 40px; font-size: 13px; }
-.workspace-account strong { max-width: none; font-size: 14px; }
+.workspace-account strong { max-width: none; font-size: 12px; }
 .workspace-account div > span { font-size: 12px; }
-.workspace-public-link, .workspace-logout { font-size: 13px; }
+.workspace-public-link, .workspace-logout { font-size: 12px; }
 .workspace-logout { min-height: 44px; }
 
 @media (min-width: 1024px) {
