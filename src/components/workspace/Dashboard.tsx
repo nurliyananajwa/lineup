@@ -38,7 +38,6 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
   const [latestUpdate, ...earlierUpdates] = data.activity
   const needsAttention = admin ? [] : data.events.filter(event => event.status === 'rejected')
   const isUpcoming = filter === 'upcoming'
-  const pendingFirst = filter === 'all'
   const attendanceRate = data.registrations ? Math.round(data.checkedIn / data.registrations * 100) : 0
   const stats: { label: string; value: number; note: string; icon: IconName; tone: string }[] = [
     { label: 'Upcoming events', value: data.upcoming.length, note: 'Approved & on the calendar', icon: 'calendar-event', tone: 'purple' },
@@ -47,7 +46,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
     { label: 'Checked in', value: data.checkedIn, note: data.registrations ? `${attendanceRate}% of registered attendees` : 'No registered attendees yet', icon: 'circle-check', tone: 'green' },
   ]
   const filtered = data.events.filter(e => (filter === 'all' || (filter === 'upcoming' ? data.upcoming.some(u => u.id === e.id) : e.status === filter)) && `${e.name} ${e.venue}`.toLowerCase().includes(search.trim().toLowerCase())).sort((a, b) => {
-    if (pendingFirst && (a.status === 'pending') !== (b.status === 'pending')) return a.status === 'pending' ? -1 : 1
+    if (admin && filter === 'all' && (a.status === 'pending') !== (b.status === 'pending')) return a.status === 'pending' ? -1 : 1
     return isUpcoming ? a.startsAt.localeCompare(b.startsAt) : b.startsAt.localeCompare(a.startsAt)
   })
   function chooseFilter(value: string) { setFilter(value); setLimit(5) }
@@ -114,6 +113,33 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
             </div>
           ))}
         </section>
+      <div className="dashboard-analytics">
+        <TicketInsights total={data.registrations} checkedIn={data.checkedIn} events={data.events} preview={preview} />
+        <section className="dashboard-panel registration-panel" id="registrations" aria-label="Registration trend">
+          <div className="panel-heading">
+            <h2>Registration trend</h2>
+            <select aria-label="Registration period" value={period} onChange={event => setPeriod(Number(event.target.value))}>
+              <option value={7}>Last 7 days</option>
+              <option value={30}>Last 30 days</option>
+            </select>
+          </div>
+          <div className="trend-total">
+            <strong>{number(recentCount)}</strong><span>registrations in the last {period} days</span>
+          </div>
+          <RegistrationChart key={period} points={points} />
+          <div className="chart-caption"><span className="legend-dot" />Daily registrations<span>Malaysia time</span></div>
+          <details className="chart-data">
+            <summary>View chart data</summary>
+            <table>
+              <caption>Registrations by day</caption>
+              <thead><tr><th scope="col">Date</th><th scope="col">Registrations</th></tr></thead>
+              <tbody>{points.map(point => <tr key={point.date}><th scope="row">{point.date}</th><td>{point.count}</td></tr>)}</tbody>
+            </table>
+          </details>
+        </section>
+      </div>
+      <section className="dashboard-panel status-panel" aria-label="Event status breakdown"><div className="panel-heading"><h2>Event overview</h2><Icon name="chart-bar" /></div><div className="status-total"><strong>{number(data.events.length)}</strong><span>total events</span></div><div className="status-breakdown">{data.statuses.map(s => <div key={s.status}><div className="status-breakdown-label"><span><span className={`status-dot dot-${s.status}`} />{s.status === 'pending' ? 'Pending' : statusLabel[s.status]}</span><strong>{s.count}</strong></div><div className="status-track"><span className={`fill-${s.status}`} style={{ width: `${data.events.length ? s.count / data.events.length * 100 : 0}%` }} /></div></div>)}</div></section>
+      <VenueMap events={data.upcoming} preview={preview} />
       <section className="dashboard-panel events-panel" id="events" tabIndex={-1} aria-label={admin ? 'Event management' : 'My events'}>
         <div className="panel-heading events-heading">
           <h2>{admin ? 'Event management' : 'My events'}<span className="quiet-count">{data.events.length}</span></h2>
@@ -136,7 +162,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
         </div>
         {filtered.length > 0 ? (
           <>
-            <p className="event-sort">{isUpcoming ? 'Date: soonest first' : pendingFirst ? 'Pending review first, then latest event date' : 'Date: latest first'}</p>
+            <p className="event-sort">{isUpcoming ? 'Date: soonest first' : admin && filter === 'all' ? 'Pending first, then latest event date' : 'Date: latest first'}</p>
             <div className="events-table-wrapper">
               <table className="events-table">
                 <thead><tr><th scope="col">Event</th><th scope="col">Status</th><th scope="col">Registrations</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
@@ -192,33 +218,6 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
           </div>
         )}
       </section>
-      <div className="dashboard-analytics">
-        <TicketInsights total={data.registrations} checkedIn={data.checkedIn} events={data.events} preview={preview} />
-        <section className="dashboard-panel registration-panel" id="registrations" aria-label="Registration trend">
-          <div className="panel-heading">
-            <h2>Registration trend</h2>
-            <select aria-label="Registration period" value={period} onChange={event => setPeriod(Number(event.target.value))}>
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-            </select>
-          </div>
-          <div className="trend-total">
-            <strong>{number(recentCount)}</strong><span>registrations in the last {period} days</span>
-          </div>
-          <RegistrationChart key={period} points={points} />
-          <div className="chart-caption"><span className="legend-dot" />Daily registrations<span>Malaysia time</span></div>
-          <details className="chart-data">
-            <summary>View chart data</summary>
-            <table>
-              <caption>Registrations by day</caption>
-              <thead><tr><th scope="col">Date</th><th scope="col">Registrations</th></tr></thead>
-              <tbody>{points.map(point => <tr key={point.date}><th scope="row">{point.date}</th><td>{point.count}</td></tr>)}</tbody>
-            </table>
-          </details>
-        </section>
-      </div>
-      <section className="dashboard-panel status-panel" aria-label="Event status breakdown"><div className="panel-heading"><h2>Event overview</h2><Icon name="chart-bar" /></div><div className="status-total"><strong>{number(data.events.length)}</strong><span>total events</span></div><div className="status-breakdown">{data.statuses.map(s => <div key={s.status}><div className="status-breakdown-label"><span><span className={`status-dot dot-${s.status}`} />{s.status === 'pending' ? 'Pending' : statusLabel[s.status]}</span><strong>{s.count}</strong></div><div className="status-track"><span className={`fill-${s.status}`} style={{ width: `${data.events.length ? s.count / data.events.length * 100 : 0}%` }} /></div></div>)}</div></section>
-      <VenueMap events={data.upcoming} preview={preview} />
     </div>
     <aside className="dashboard-secondary-column" aria-label="Schedule">
       <div className="dashboard-updates-stack">
