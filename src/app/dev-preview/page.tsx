@@ -23,7 +23,7 @@ async function PreviewContent({ searchParams }: PageProps<'/dev-preview'>) {
       <nav aria-label="Preview role"><Link href="/dev-preview?role=organizer" aria-current={role === 'organizer' ? 'page' : undefined}>Organiser</Link><Link href="/dev-preview?role=admin" aria-current={role === 'admin' ? 'page' : undefined}>Admin</Link></nav>
       <Link href="/signup" className="preview-signup">Create an account</Link>
     </section>
-    <Dashboard profile={profile} data={getPreviewDashboard(role, now)} />
+    <Dashboard profile={profile} data={getPreviewDashboard(role, now)} preview />
   </WorkspaceShell>
 }
 export default function DevelopmentPreview(props: PageProps<'/dev-preview'>) {

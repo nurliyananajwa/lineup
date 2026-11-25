@@ -17,7 +17,7 @@ export function getPreviewDashboard(role: 'admin' | 'organizer', now = new Date(
     poster_url: null, created_at: daysFromNow(-15 + index),
     reviewed_at: ['approved', 'rejected'].includes(status) ? daysFromNow(-13 + index) : null,
     review_comments: status === 'rejected' ? 'Please confirm the venue and programme.' : null,
-    venues: { name: index === 3 ? 'Riverside Park' : 'The Courtyard', address: 'Sample venue', capacity: 120 },
+    venues: { name: index % 2 ? 'Perdana Botanical Garden' : 'KLCC Park', address: 'Kuala Lumpur, Malaysia', capacity: 120 },
   }))
   const tickets: DashboardTicket[] = []
   for (const [eventId, count, attended] of [[1, 48, 0], [6, 24, 18]]) {
