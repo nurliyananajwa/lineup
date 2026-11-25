@@ -8,6 +8,12 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } })
 page.setDefaultTimeout(60000)
 const errors = []
 page.on('pageerror', error => errors.push(error.message))
+page.on('console', message => {
+  if (message.type() === 'error') {
+    console.log('DEV_PREVIEW_CONSOLE_ERROR ' + message.text())
+    if (!message.text().startsWith('Failed to load resource:')) errors.push(message.text())
+  }
+})
 try {
   const production = await page.request.get('http://localhost:3001/dev-preview')
   assert.equal(production.status(), 404, 'Production must not expose the development preview')
@@ -31,6 +37,18 @@ try {
   console.log('LINEUP_SCREENSHOT_START:development-preview')
   console.log(image.toString('base64'))
   console.log('LINEUP_SCREENSHOT_END:development-preview')
+  const issues = await page.evaluate(async () => {
+    for (const portal of document.querySelectorAll('nextjs-portal')) {
+      for (const button of portal.shadowRoot?.querySelectorAll('button') ?? []) {
+        if (/\d+\s*Issue/.test(button.textContent ?? '')) button.click()
+      }
+    }
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    return [...document.querySelectorAll('nextjs-portal')].map(portal => [...(portal.shadowRoot?.children ?? [])].filter(e => e.tagName !== 'STYLE').map(e => e instanceof HTMLElement ? e.innerText : '').join('\n')).join('\n').slice(0, 10000)
+  })
+  console.log('DEV_PREVIEW_ISSUES ' + JSON.stringify(issues))
+  await page.reload()
+  await page.getByRole('region', { name: 'Development preview', exact: true }).waitFor()
   await page.setViewportSize({ width: 375, height: 812 })
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click()

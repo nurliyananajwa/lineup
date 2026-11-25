@@ -91,11 +91,40 @@ jobs:
           done
           test "$ready" = 1
           node e2e/browser.mjs
-      - name: Verify development-only dashboard preview
-        shell: bash
-        env:
-          LINEUP_PREVIEW_TEST_URL: http://localhost:3002
+      - name: Print server log on failure
+        if: failure()
         run: |
+          cat /tmp/lineup-server.log 2>/dev/null || true
+      - name: Stop disposable database
+        if: always()
+        run: supabase stop --no-backup
+
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LINEUP_LOCAL_E2E: '1'
+      LINEUP_PREVIEW_TEST_URL: http://localhost:3002
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: local-preview-only
+      NEXT_PUBLIC_SITE_URL: http://localhost:3002
+      PLAYWRIGHT_MODULE: file:///tmp/lineup-browser/node_modules/playwright/index.mjs
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install browser
+        run: |
+          npm install --prefix /tmp/lineup-browser --no-package-lock --ignore-scripts playwright@1.65.1
+          node /tmp/lineup-browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify development preview without a database
+        shell: bash
+        run: |
+          npm run start > /tmp/lineup-server.log 2>&1 &
           node node_modules/next/dist/bin/next dev --port 3002 > /tmp/lineup-dev-server.log 2>&1 &
           ready=0
           for attempt in {1..60}; do
@@ -104,11 +133,6 @@ jobs:
           done
           test "$ready" = 1
           node e2e/dev-preview.mjs
-      - name: Print server log on failure
-        if: failure()
-        run: |
-          cat /tmp/lineup-server.log 2>/dev/null || true
-          cat /tmp/lineup-dev-server.log 2>/dev/null || true
-      - name: Stop disposable database
+      - name: Development server diagnostics
         if: always()
-        run: supabase stop --no-backup
+        run: cat /tmp/lineup-dev-server.log 2>/dev/null || true
