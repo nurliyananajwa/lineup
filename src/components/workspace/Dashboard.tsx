@@ -30,7 +30,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
   const attendanceRate = data.registrations ? Math.round(data.checkedIn / data.registrations * 100) : 0
   const stats: { label: string; value: number; note: string; icon: IconName; tone: string }[] = [
     { label: 'Upcoming events', value: data.upcoming.length, note: 'Approved & on the calendar', icon: 'calendar-event', tone: 'purple' },
-    { label: admin ? 'Awaiting approval' : 'Pending review', value: data.pending, note: admin ? 'Ready for your review' : 'With the admin team', icon: 'clock', tone: 'amber' },
+    { label: 'Draft events', value: data.statuses.find(status => status.status === 'draft')?.count ?? 0, note: 'Still in preparation', icon: 'file-pencil', tone: 'amber' },
     { label: 'Registrations', value: data.registrations, note: 'Across all your events', icon: 'ticket', tone: 'blue' },
     { label: 'Checked in', value: data.checkedIn, note: data.registrations ? `${attendanceRate}% of registered attendees` : 'Attendance starts with a ticket', icon: 'circle-check', tone: 'green' },
   ]
@@ -40,7 +40,65 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
   })
   function chooseFilter(value: string) { setFilter(value); setLimit(5) }
   return <div className="dashboard" data-testid="dashboard">
-    <div className="dashboard-welcome"><div><h1>Overview<span className="heading-dot">.</span></h1><p>{greeting}, {firstName}. {admin ? 'Here’s what’s happening across Lineup.' : 'Let’s make your next event a good one.'}</p></div><Link href={admin ? '/admin/events' : '/organizer/events/new'} className="workspace-primary"><Icon name={admin ? 'clipboard-check' : 'plus'} />{admin ? 'Review events' : 'Create event'}{admin && data.pending > 0 && <span className="button-count">{data.pending}</span>}</Link></div>
+    <header className="dashboard-masthead">
+      <div>
+        <h1>{admin ? 'Event operations' : 'Your events'}<span>.</span></h1>
+        <p>{greeting}, {firstName}.</p>
+      </div>
+      <Link href={admin ? '/admin/events' : '/organizer/events/new'} className="workspace-primary">
+        <Icon name={admin ? 'clipboard-check' : 'plus'} />
+        {admin ? 'Review events' : 'Create event'}
+      </Link>
+    </header>
+
+    <div className="dashboard-lead">
+      <section className="event-spotlight" aria-labelledby="spotlight-title">
+        {featured?.poster && (
+          <Image className="event-spotlight-poster" src={featured.poster} alt="" fill unoptimized sizes="(max-width: 760px) 100vw, 60vw" />
+        )}
+        <div className="event-spotlight-copy">
+          <span className="event-spotlight-label">
+            <Icon name="calendar-event" />
+            {featured && new Date(featured.startsAt) <= new Date(data.now) ? 'Happening now' : 'Next event'}
+          </span>
+          <h2 id="spotlight-title">{featured?.name ?? 'No upcoming events'}</h2>
+          {featured && (
+            <>
+              <p>{formatRange(featured.startsAt, featured.endsAt)}</p>
+              <p>{featured.venue}</p>
+              {preview ? (
+                <a className="spotlight-action" href="#events" onClick={() => { setSearch(''); chooseFilter('upcoming') }}>
+                  View upcoming events <Icon name="arrow-right" />
+                </a>
+              ) : (
+                <Link className="spotlight-action" href={featured.href}>
+                  Open event <Icon name="arrow-right" />
+                </Link>
+              )}
+            </>
+          )}
+        </div>
+        {featured && (
+          <div className="event-spotlight-date" aria-hidden="true">
+            <span>{date(featured.startsAt, { month: 'short' })}</span>
+            <strong>{date(featured.startsAt, { day: '2-digit' })}</strong>
+          </div>
+        )}
+      </section>
+      <section className="event-queue" aria-labelledby="event-queue-title">
+        <div className="event-queue-heading">
+          <h2 id="event-queue-title">{admin ? 'Approval queue' : 'Pending review'}</h2>
+          <Icon name="clock" />
+        </div>
+        <strong>{number(data.pending)}</strong>
+        <p>{data.pending === 1 ? 'Event awaiting review' : 'Events awaiting review'}</p>
+        {data.pending > 0 && (
+          <a className="queue-action" href="#events" onClick={() => { setSearch(''); chooseFilter('pending') }}>
+            Show pending events <Icon name="arrow-right" />
+          </a>
+        )}
+      </section>
+    </div>
 
     <section className="dashboard-stats" aria-label="Event summary">{stats.map(stat => <div className="dashboard-stat" key={stat.label}><div className="stat-heading"><span>{stat.label}</span><span className={`stat-icon tone-${stat.tone}`}><Icon name={stat.icon} /></span></div><strong data-testid={`metric-${stat.icon}`}>{number(stat.value)}</strong><p>{stat.note}</p></div>)}</section>
 
@@ -63,7 +121,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
       <section className="dashboard-panel status-panel" aria-label="Event status breakdown"><div className="panel-heading"><h2>Event overview</h2><Icon name="chart-bar" /></div><div className="status-total"><strong>{number(data.events.length)}</strong><span>total events</span></div><div className="status-breakdown">{data.statuses.map(s => <div key={s.status}><div className="status-breakdown-label"><span><span className={`status-dot dot-${s.status}`} />{s.status === 'pending' ? 'Pending' : statusLabel[s.status]}</span><strong>{s.count}</strong></div><div className="status-track"><span className={`fill-${s.status}`} style={{ width: `${data.events.length ? s.count / data.events.length * 100 : 0}%` }} /></div></div>)}</div></section>
       <section className="dashboard-panel activity-panel" aria-label="Recent updates"><div className="panel-heading"><div><h2>Recent updates</h2><p>The latest in your workspace.</p></div><span className="activity-updated">As of {date(data.now, { hour: 'numeric', minute: '2-digit' })}</span></div>{data.activity.length ? <ol className="activity-list">{data.activity.slice(0, 4).map(activity => <li key={activity.id}><span className={`activity-icon tone-${activity.tone}`}><Icon name={activity.label === 'Latest registration' ? 'ticket' : activity.label === 'Event approved' ? 'circle-check' : 'file-pencil'} /></span><div><strong>{activity.label}</strong><Link href={activity.href}>{activity.event}</Link></div><time dateTime={activity.at}>{date(activity.at, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</time></li>)}</ol> : <p className="activity-empty">Your event updates and registrations will appear here.</p>}</section>
     </div>
-    <aside className="dashboard-secondary-column" aria-label="Schedule"><section className="dashboard-panel next-event-panel"><div className="panel-heading"><h2>Next on the calendar</h2><span className="small-live-dot" /></div>{featured ? <><Link href={featured.href} className={`featured-visual ${featured.poster ? 'has-poster' : ''}`}>{featured.poster ? <Image src={featured.poster} alt="" width={640} height={360} unoptimized /> : <div className="featured-date"><span>{date(featured.startsAt, { month: 'long', year: 'numeric' })}</span><strong>{date(featured.startsAt, { day: '2-digit' })}</strong><span>{date(featured.startsAt, { weekday: 'long' })}</span></div>}<span className="featured-tag">{new Date(featured.startsAt) <= new Date(data.now) ? 'Happening now' : 'Coming up'}</span></Link><div className="featured-content"><Link href={featured.href}><h3>{featured.name}</h3></Link><p className="featured-venue"><Icon name="map-pin" />{featured.venue}</p><p className="featured-time"><Icon name="clock" />{formatRange(featured.startsAt, featured.endsAt)}</p><div className="featured-capacity"><span><strong>{featured.registrations}</strong> registered</span><span>{featured.capacity > 0 ? `${Math.max(0, featured.capacity - featured.registrations)} places left` : 'Capacity to be confirmed'}</span></div>{featured.capacity > 0 && <progress value={Math.min(featured.registrations, featured.capacity)} max={featured.capacity} aria-label="Next event registrations" />}<Link href={featured.href} className="featured-link">View event details<Icon name="arrow-right" /></Link></div></> : <div className="next-event-empty"><span className="empty-calendar-icon"><Icon name="calendar-event" /></span><h3>Room for something great.</h3><p>{admin ? 'Your next approved event will appear here.' : 'Once your event is approved, you’ll find it here.'}</p><Link href={admin ? '/admin/events' : '/organizer/events/new'} className="workspace-text-link">{admin ? 'View submissions' : 'Plan an event'}<Icon name="arrow-right" /></Link></div>}</section>
+    <aside className="dashboard-secondary-column" aria-label="Schedule">
       <VenueMap events={data.upcoming} preview={preview} />
       <EventCalendar events={data.events} now={data.now} />
     </aside></div>

@@ -6,6 +6,7 @@ import SiteFrame from '@/components/SiteFrame'
 import './globals.css'
 import './workspace.css'
 import './workspace-refresh.css'
+import './workspace-programme.css'
 const geistSans = localFont({ src: './fonts/geist-latin.woff2', variable: '--font-geist-sans', weight: '100 900', display: 'swap' })
 export const metadata: Metadata = { title: 'Lineup', description: 'Submit, approve and discover events in one place.' }
 export default function RootLayout({ children }: LayoutProps<'/'>) {

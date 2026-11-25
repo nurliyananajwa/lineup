@@ -1,0 +1,127 @@
+.workspace-shell {
+  --ws-purple: #263dd4;
+  --ws-purple-dark: #182aaa;
+  --ws-ink: #191b2c;
+  --ws-muted: #55596e;
+  --ws-border: #e3e4ee;
+  --ws-surface: #f5f5fb;
+}
+.workspace-sidebar, .workspace-mobile-menu[open] {
+  background: #1d1d30;
+  border-color: #1d1d30;
+}
+.workspace-brand-mark { background: #dcfa59; color: #1d1d30; }
+.brand-period { color: #dcfa59; }
+.workspace-nav a:hover, .workspace-nav a.is-active { background: #343552; color: #e4fa83; }
+.nav-active-dot { background: #dcfa59; }
+.workspace-role, .workspace-avatar, .development-preview-bar {
+  color: #313987;
+  border-color: #dfe1fb;
+  background: #eef0ff;
+}
+.development-preview-bar nav { border-color: #dfe1fb; background: white; }
+.development-preview-bar nav a[aria-current=page] { background: #263dd4; }
+.preview-signup { color: #2536b5; }
+
+.dashboard-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.dashboard-masthead h1 {
+  font-size: clamp(27px, 3vw, 42px);
+  line-height: 1.05;
+  font-weight: 750;
+  letter-spacing: -.065em;
+  margin: 0 0 6px;
+}
+.dashboard-masthead h1 span { color: var(--ws-purple); }
+.dashboard-masthead p { margin: 0; color: var(--ws-muted); }
+.dashboard-lead {
+  display: grid;
+  grid-template-columns: minmax(0, 2.25fr) minmax(215px, 1fr);
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.event-spotlight, .event-queue { border-radius: 20px; }
+.event-spotlight {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(12px, 3vw, 36px);
+  min-height: 232px;
+  padding: clamp(18px, 3vw, 34px);
+  background: #2539d4;
+  color: white;
+}
+.event-spotlight-poster {
+  z-index: -2;
+  object-fit: cover;
+}
+.event-spotlight:has(.event-spotlight-poster)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, #171d51 14%, #171d51ed 49%, #171d5155 100%);
+}
+.event-spotlight-label { display: inline-flex; align-items: center; gap: 8px; color: #e8ebff; font-size: 13px; }
+.event-spotlight-label .workspace-icon { width: 17px; height: 17px; }
+.event-spotlight h2 {
+  margin: 14px 0 10px;
+  font-size: clamp(27px, 4.3vw, 58px);
+  font-weight: 750;
+  line-height: .98;
+  letter-spacing: -.07em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.event-spotlight p { margin-top: 5px; color: #e8ebff; font-size: 13px; }
+.event-spotlight-date {
+  align-self: stretch;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-width: clamp(65px, 11vw, 154px);
+  border-left: 1px dashed #bac3ff;
+  padding-left: clamp(10px, 2vw, 28px);
+  font-variant-numeric: tabular-nums;
+  color: #dcfa59;
+}
+.event-spotlight-date span { text-transform: uppercase; letter-spacing: .16em; font-weight: 650; }
+.event-spotlight-date strong { font-size: clamp(46px, 8vw, 96px); line-height: .95; letter-spacing: -.09em; font-weight: 800; }
+.spotlight-action, .queue-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 680;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.spotlight-action { color: #f2ffa6; }
+.spotlight-action .workspace-icon, .queue-action .workspace-icon { width: 17px; height: 17px; }
+.event-queue { background: #def866; padding: clamp(18px, 2.6vw, 30px); color: #202617; }
+.event-queue-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.event-queue-heading h2 { font-size: 16px; font-weight: 680; }
+.event-queue > strong { display: block; font-size: clamp(50px, 7vw, 88px); line-height: 1; letter-spacing: -.09em; margin-top: 12px; }
+.event-queue p { margin-top: 6px; font-size: 13px; }
+.area-fill { fill: #e1e6ff; }
+.area-line, .registration-area circle { stroke: #263dd4; }
+.legend-dot, .calendar-event-dot { background: #263dd4; }
+.event-tabs button.is-selected, .event-tabs button:hover { background: #eef0ff; color: #2536b5; }
+.stat-icon.tone-purple, .activity-icon.tone-purple { background: #eef0ff; color: #263dd4; }
+.dashboard-stat { border-radius: 12px; }
+.dashboard-overview #events, .dashboard-overview #venue-map { scroll-margin-top: 20px; }
+@media (max-width: 759px) {
+  .dashboard-lead { grid-template-columns: 1fr; gap: 12px; }
+  .event-spotlight { min-height: 190px; }
+  .event-queue > strong { font-size: 54px; }
+}
