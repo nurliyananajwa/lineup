@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
+import { formatRange } from '@/lib/format'
 import type { DashboardEvent } from '@/lib/dashboard-model'
 import Icon from './Icon'
 
@@ -35,19 +37,31 @@ export default function VenueMap({ events, preview }: { events: DashboardEvent[]
       </div>
       {event ? (
         <div className="venue-map-content">
-          <label>
-            Upcoming event
-            <select value={event.id} onChange={change => setSelected(Number(change.target.value))}>
-              {venues.map(venue => <option value={venue.id} key={venue.id}>{venue.name}</option>)}
-            </select>
-          </label>
-          {embed && <iframe title={`Map of ${event.venue}`} src={embed} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" />}
-          <div className="venue-map-location">
-            <strong>{event.venue}</strong>
-            <span>{event.address}</span>
-            <a href={directions} target="_blank" rel="noreferrer" className="workspace-text-link">
-              Get directions <Icon name="arrow-up-right" />
-            </a>
+          <div className="venue-event-list" role="group" aria-label="Upcoming events">
+            {venues.map(venue => (
+              <button type="button" key={venue.id} aria-pressed={venue.id === event.id} onClick={() => setSelected(venue.id)}>
+                <span className="venue-event-photo">
+                  {venue.poster ? <Image src={venue.poster} alt="" width={48} height={48} unoptimized /> : <Icon name="calendar-event" />}
+                </span>
+                <span className="venue-event-details">
+                  <strong>{venue.name}</strong>
+                  <span>{formatRange(venue.startsAt, venue.endsAt)}</span>
+                  <span>{venue.venue}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="venue-map-preview">
+            {embed ? <iframe title={`Map of ${event.venue}`} src={embed} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" /> : (
+              <div className="venue-map-placeholder"><Icon name="map-pin" /><span>Open directions to see this venue on a map.</span></div>
+            )}
+            <div className="venue-map-location" aria-live="polite">
+              <strong>{event.venue}</strong>
+              <span>{event.address}</span>
+              <a href={directions} target="_blank" rel="noreferrer" className="workspace-text-link">
+                Get directions <Icon name="arrow-up-right" />
+              </a>
+            </div>
           </div>
         </div>
       ) : <p className="venue-map-empty">Add an address to an upcoming event’s venue to get directions.</p>}

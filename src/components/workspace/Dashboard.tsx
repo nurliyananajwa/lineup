@@ -54,7 +54,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
     <div className="dashboard-columns"><div className="dashboard-primary-column">
     <section className="dashboard-stats" aria-label="Event summary">{stats.map(stat => <div className="dashboard-stat" key={stat.label}><div className="stat-heading"><span>{stat.label}</span><span className={`stat-icon tone-${stat.tone}`}><Icon name={stat.icon} /></span></div><strong data-testid={`metric-${stat.icon}`}>{number(stat.value)}</strong><p>{stat.note}</p></div>)}</section>
       <div className="dashboard-analytics">
-        <TicketInsights total={data.registrations} checkedIn={data.checkedIn} />
+        <TicketInsights total={data.registrations} checkedIn={data.checkedIn} events={data.events} preview={preview} />
         <section className="dashboard-panel registration-panel" id="registrations" aria-label="Registration trend"><div className="panel-heading"><h2>Registration trend</h2><select aria-label="Registration period" value={period} onChange={event => setPeriod(Number(event.target.value))}><option value={7}>Last 7 days</option><option value={30}>Last 30 days</option></select></div><div className="trend-total"><strong>{number(recentCount)}</strong><span>registrations in this period</span></div>
           <RegistrationChart points={points} total={recentCount} />
           <div className="chart-caption"><span className="legend-dot" />Daily registrations<span>Malaysia time</span></div>
@@ -87,6 +87,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
           </div>
         </section>
       )}
+      <VenueMap events={data.upcoming} preview={preview} />
       <section className="dashboard-panel events-panel" id="events" aria-label={admin ? 'Event management' : 'My events'}><div className="panel-heading events-heading"><div><h2>{admin ? 'Event management' : 'My events'}<span className="quiet-count">{data.events.length}</span></h2><p>{admin ? 'A clear view of every submission.' : 'From the first draft to the final guest.'}</p></div><Link href={admin ? '/admin/events' : '/organizer/events/new'} className="workspace-text-link">{admin ? 'Review queue' : 'New event'}<Icon name={admin ? 'arrow-up-right' : 'plus'} /></Link></div>
         <div className="event-tools"><div className="event-tabs" role="group" aria-label="Filter events">{[{ value: 'all', label: 'All events' }, { value: 'upcoming', label: 'Upcoming' }, { value: 'pending', label: 'Pending' }, { value: 'draft', label: 'Drafts' }].map(tab => <button key={tab.value} className={filter === tab.value ? 'is-selected' : ''} aria-pressed={filter === tab.value} onClick={() => chooseFilter(tab.value)}>{tab.label}</button>)}</div><label className="event-search"><Icon name="search" /><input type="search" aria-label="Search your events" placeholder="Search events…" value={search} onChange={event => { setSearch(event.target.value); setLimit(5) }} /></label></div>
         {filtered.length ? <div className="events-table-wrapper"><table className="events-table"><thead><tr><th scope="col">EVENT</th><th scope="col">STATUS</th><th scope="col">REGISTRATIONS</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.slice(0, limit).map(event => <tr key={event.id}><td><div className="event-name-cell"><EventThumbnail event={event} /><div><Link href={event.href} className="event-title">{event.name}</Link><p>{date(event.startsAt, { day: 'numeric', month: 'short', year: 'numeric' })}<span>·</span>{event.venue}</p>{event.reviewComment && <p className="event-review-note">{event.reviewComment}</p>}</div></div></td><td><Status value={event.status} /></td><td><div className="table-registrations"><span><strong>{number(event.registrations)}</strong>{event.capacity > 0 && ` / ${number(event.capacity)}`}</span>{event.capacity > 0 && <progress value={Math.min(event.registrations, event.capacity)} max={event.capacity} aria-label={`${event.name}: ${event.registrations} of ${event.capacity} places registered`} />}</div></td><td><Link href={event.status === 'approved' ? `/check-in/${event.id}` : event.href} className="event-action">{event.status === 'approved' ? 'Check in' : admin ? 'Review' : 'Manage'}<Icon name="arrow-up-right" /></Link></td></tr>)}</tbody></table></div> : <div className="dashboard-empty"><Icon name={search ? 'search' : 'calendar-event'} /><h3>{data.events.length ? 'No matching events' : 'Your next event starts here'}</h3><p>{data.events.length ? 'Try a different search or filter.' : admin ? 'Submitted events will appear here for review.' : 'Create an event, add the details and send it for approval.'}</p>{data.events.length ? <button className="workspace-text-link" onClick={() => { setSearch(''); chooseFilter('all') }}>Reset filters<Icon name="arrow-right" /></button> : !admin && <Link className="workspace-primary" href="/organizer/events/new"><Icon name="plus" />Create event</Link>}</div>}
@@ -133,8 +134,28 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
           )}
         </div>
       </section>
-      <VenueMap events={data.upcoming} preview={preview} />
-      <section className="dashboard-panel activity-panel" aria-label="Recent updates"><div className="panel-heading"><div><h2>Recent updates</h2><p>The latest in your workspace.</p></div><span className="activity-updated">As of {date(data.now, { hour: 'numeric', minute: '2-digit' })}</span></div>{data.activity.length ? <ol className="activity-list">{data.activity.slice(0, 4).map(activity => <li key={activity.id}><span className={`activity-icon tone-${activity.tone}`}><Icon name={activity.label === 'Latest registration' ? 'ticket' : activity.label === 'Event approved' ? 'circle-check' : 'file-pencil'} /></span><div><strong>{activity.label}</strong><Link href={activity.href}>{activity.event}</Link></div><time dateTime={activity.at}>{date(activity.at, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</time></li>)}</ol> : <p className="activity-empty">Your event updates and registrations will appear here.</p>}</section>
+      <section className="dashboard-panel activity-panel" aria-labelledby="workspace-activity-title">
+        <div className="panel-heading">
+          <h2 id="workspace-activity-title">Recent updates</h2>
+          <span className="activity-updated">As of {date(data.now, { hour: 'numeric', minute: '2-digit' })}</span>
+        </div>
+        {data.activity.length ? (
+          <ol className="activity-list workspace-timeline">
+            {data.activity.map(activity => (
+              <li key={activity.id}>
+                <span className={`activity-icon tone-${activity.tone}`}>
+                  <Icon name={activity.label === 'Latest registration' ? 'ticket' : activity.label === 'Event approved' ? 'circle-check' : 'file-pencil'} />
+                </span>
+                <div>
+                  <strong>{activity.label}</strong>
+                  {preview ? <span className="activity-event">{activity.event}</span> : <Link href={activity.href}>{activity.event}</Link>}
+                  <time dateTime={activity.at}>{date(activity.at, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</time>
+                </div>
+              </li>
+            ))}
+          </ol>
+        ) : <p className="activity-empty">Your event updates and registrations will appear here.</p>}
+      </section>
     </aside></div>
   </div>
 }
