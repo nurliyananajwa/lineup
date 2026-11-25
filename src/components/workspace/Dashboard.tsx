@@ -49,6 +49,8 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
         <Icon name={admin ? 'clipboard-check' : 'plus'} />
         {admin ? 'Review events' : 'Create event'}
       </Link>
+    </header>
+
     <div className="dashboard-columns"><div className="dashboard-primary-column">
     <section className="dashboard-stats" aria-label="Event summary">{stats.map(stat => <div className="dashboard-stat" key={stat.label}><div className="stat-heading"><span>{stat.label}</span><span className={`stat-icon tone-${stat.tone}`}><Icon name={stat.icon} /></span></div><strong data-testid={`metric-${stat.icon}`}>{number(stat.value)}</strong><p>{stat.note}</p></div>)}</section>
       <div className="dashboard-analytics">
