@@ -6,7 +6,7 @@ export default function RegistrationChart({ points, total }: { points: Point[]; 
     x: 10 + (index / (points.length - 1)) * 380,
     y: 130 - (point.count / maximum) * 115,
   }))
-  const line = coordinates.map(({ x, y }) => `${x},${y}`).join(' ')
+  const barWidth = Math.min(24, 290 / points.length)
   const label = new Intl.DateTimeFormat('en-MY', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 
   return (
@@ -16,12 +16,12 @@ export default function RegistrationChart({ points, total }: { points: Point[]; 
         <svg viewBox="0 0 400 145" preserveAspectRatio="none" role="img"
           aria-label={`${total} registrations over the last ${points.length} days. Open View chart data for daily counts.`}>
           {[15, 53, 92, 130].map(y => <line key={y} x1="0" y1={y} x2="400" y2={y} className="area-grid" />)}
-          <polygon className="area-fill" points={`10,130 ${line} 390,130`} />
-          <polyline className="area-line" points={line} />
           {points.map((point, index) => (
-            <circle key={point.date} cx={coordinates[index].x} cy={coordinates[index].y} r={points.length === 7 ? 4 : 2.5}>
+            <rect key={point.date} x={coordinates[index].x - barWidth / 2} y={coordinates[index].y}
+              width={barWidth} height={130 - coordinates[index].y} rx="4"
+              className={index === points.length - 1 ? 'registration-bar is-latest' : 'registration-bar'}>
               <title>{`${label.format(new Date(point.date))}: ${point.count} registrations`}</title>
-            </circle>
+            </rect>
           ))}
         </svg>
         <div className="registration-axis" aria-hidden="true">

@@ -12,16 +12,23 @@ export function getPreviewDashboard(role: 'admin' | 'organizer', now = new Date(
     ['Design for Everyone', 'pending', 5], ['Sunday Community Run', 'draft', 6],
     ['Photography Walk', 'rejected', 18], ['Creative Coding Lab', 'approved', -7],
   ]
+  // Illustrative event photography is only shown in the local preview.
+  const posters = [
+    'https://media.iamsterdam.com/w_1800/h_1020/4644yllu7ljt-cinetree-forest-film-festival1.jpg',
+    'https://a.storyblok.com/f/277723/1920x1152/a7724c285e/containerscenen.png',
+    'https://gslkulturfest.org/images/atolye.png',
+  ]
   const events: DashboardSourceEvent[] = definitions.map(([name, status, days], index) => ({
     id: index + 1, name, status, starts_at: daysFromNow(days), ends_at: daysFromNow(days, 14),
-    poster_url: null, created_at: daysFromNow(-15 + index),
+    poster_url: posters[index] ?? null, created_at: daysFromNow(-15 + index),
     reviewed_at: ['approved', 'rejected'].includes(status) ? daysFromNow(-13 + index) : null,
     review_comments: status === 'rejected' ? 'Please confirm the venue and programme.' : null,
     venues: { name: index % 2 ? 'Perdana Botanical Garden' : 'KLCC Park', address: 'Kuala Lumpur, Malaysia', capacity: 120 },
   }))
   const tickets: DashboardTicket[] = []
+  const recentDays = [13, 9, 4, 7, 3, 10, 2].flatMap((count, day) => Array<number>(count).fill(day))
   for (const [eventId, count, attended] of [[1, 48, 0], [6, 24, 18]]) {
-    for (let i = 0; i < count; i++) tickets.push({ event_id: eventId, attended: i < attended, created_at: new Date(new Date(now).getTime() - (eventId === 6 ? 9 + i % 5 : i % 7) * 86400000 - 3600000).toISOString(), checked_in_at: i < attended ? daysFromNow(-7) : null })
+    for (let i = 0; i < count; i++) tickets.push({ event_id: eventId, attended: i < attended, created_at: new Date(new Date(now).getTime() - (eventId === 6 ? 9 + i % 5 : recentDays[i]) * 86400000 - 3600000).toISOString(), checked_in_at: i < attended ? daysFromNow(-7) : null })
   }
   return buildDashboardModel(events, tickets, role, now)
 }
