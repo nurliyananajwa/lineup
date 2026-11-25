@@ -8,11 +8,8 @@ A rebuild of an earlier CakePHP project on a modern stack, with the security rul
 
 **https://lineup-gilt.vercel.app**
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Admin | admin.demo@example.com | Demo1234! |
-| Organizer | organizer.demo@example.com | Demo1234! |
-| Organizer | organizer2.demo@example.com | Demo1234! |
+Demo accounts are available for portfolio review. Obtain the current credentials
+from the project owner; passwords are not published in this repository.
 
 Attendees don't need an account: open any event on the home page and register.
 
@@ -39,7 +36,16 @@ All permissions live in Postgres (`supabase/migrations/`), not only in page code
 1. `npm install`
 2. Copy `.env.example` to `.env.local` and fill in your Supabase URL and publishable key
 3. Apply `supabase/migrations/*.sql` to your Supabase project
-4. `npm run dev` and open http://localhost:3000
+4. `npm run dev` and open http://localhost:3001
+
+Keep `NEXT_PUBLIC_SITE_URL=http://localhost:3001` in `.env.local` for local links.
+`npm run check` runs lint, type checking and the automated unit tests.
+
+The event-save database update is included in
+`supabase/migrations/20261125013020_system_reliability.sql` and has already been
+applied to the connected Lineup project. Apply outstanding migrations only once.
+Apply `supabase/changes/event_contact_privacy.sql` only after
+every deployment using this database has the updated public-client queries.
 
 To make yourself an admin, sign up, then run in the Supabase SQL editor:
 

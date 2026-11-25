@@ -15,11 +15,12 @@ async function AdminEventsContent({ searchParams }: PageProps<'/admin/events'>) 
   const tab = TABS.find((t) => t === query.status) ?? 'pending'
 
   const supabase = await createClient()
-  const { data: events } = await supabase
+  const { data: events, error } = await supabase
     .from('events')
     .select('id, name, status, starts_at, ends_at, submitter_name, venues(name)')
     .eq('status', tab)
     .order('starts_at')
+  if (error) throw new Error('Could not load events.')
 
   return (
     <div className="space-y-6">

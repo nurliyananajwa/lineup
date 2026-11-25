@@ -6,7 +6,7 @@ import { requireRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import {
   friendlyDbError, readEventForm, validateEvent,
-  type EventFormState, type GuestInput,
+  type EventFormState,
 } from '@/lib/events'
 
 const POSTER_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
@@ -24,24 +24,7 @@ async function uploadPoster(supabase: Supabase, userId: string, file: FormDataEn
   const path = `${userId}/${crypto.randomUUID()}.${ext}`
   const { error } = await supabase.storage.from('posters').upload(path, file, { contentType: file.type })
   if (error) return { error: 'Could not upload the poster.' }
-  return { url: supabase.storage.from('posters').getPublicUrl(path).data.publicUrl }
-}
-
-// Replaces the event's guest list with the one from the form.
-async function saveGuests(supabase: Supabase, eventId: number, guests: GuestInput[]) {
-  const { error: delError } = await supabase.from('guests').delete().eq('event_id', eventId)
-  if (delError) return delError
-  if (guests.length === 0) return null
-  const { error } = await supabase.from('guests').insert(
-    guests.map((g) => ({
-      event_id: eventId,
-      name: g.name,
-      designation: g.designation || null,
-      organization: g.organization || null,
-      guest_type: g.guest_type || null,
-    })),
-  )
-  return error
+  return { url: supabase.storage.from('posters').getPublicUrl(path).data.publicUrl, path }
 }
 
 // One action for both "Save draft" and "Submit for approval" (the button's name="intent" says which).
@@ -61,32 +44,15 @@ export async function saveEvent(eventId: number | null, prev: EventFormState, fo
   if (poster.error) return fail(poster.error)
   const row = { ...checked.row, ...(poster.url ? { poster_url: poster.url } : {}) }
 
-  let id = eventId
-  if (id === null) {
-    // New event: save it as a draft first, add guests, then submit it if asked.
-    const { data, error } = await supabase.from('events').insert({ ...row, status: 'draft' }).select('id').single()
-    if (error || !data) return fail(friendlyDbError(error ?? {}))
-    id = data.id
-    const guestError = await saveGuests(supabase, id, values.guests)
-    if (guestError) return fail('The event was saved, but the guest list could not be saved.')
-    if (submitting) {
-      const { error: submitError } = await supabase.from('events').update({ status: 'pending' }).eq('id', id)
-      if (submitError) {
-        // Keep the draft and show the problem on its edit page.
-        redirect(`/organizer/events/${id}?error=${submitError.code === '23P01' ? 'clash' : 'submit'}`)
-      }
-    }
-  } else {
-    // Existing event: only drafts and rejected events can be edited (the database enforces this).
-    const guestError = await saveGuests(supabase, id, values.guests)
-    if (guestError) return fail('This event can no longer be edited.')
-    const { data, error } = await supabase
-      .from('events')
-      .update({ ...row, status: submitting ? 'pending' : 'draft' })
-      .eq('id', id)
-      .select('id')
-    if (error) return fail(friendlyDbError(error))
-    if (!data?.length) return fail('This event can no longer be edited.')
+  const { data: id, error } = await supabase.rpc('save_event_with_guests', {
+    p_event_id: eventId, p_event: row, p_guests: values.guests, p_submit: submitting,
+  })
+  if (error || !id) {
+    // The database transaction rolls back the event and guests. Storage uploads
+    // are separate, so remove this newly uploaded poster on a failed save.
+    if (poster.path) await supabase.storage.from('posters').remove([poster.path])
+    return fail(error?.message === 'This event can no longer be edited'
+      ? 'This event can no longer be edited.' : friendlyDbError(error ?? {}))
   }
 
   revalidatePath('/organizer')
@@ -97,7 +63,8 @@ export async function deleteDraft(eventId: number) {
   await requireRole('organizer')
   const supabase = await createClient()
   // The database only lets organizers delete their own drafts.
-  await supabase.from('events').delete().eq('id', eventId)
+  const { data, error } = await supabase.from('events').delete().eq('id', eventId).select('id')
+  if (error || !data?.length) throw new Error('The draft could not be deleted. Please try again.')
   revalidatePath('/organizer')
   redirect('/organizer')
 }

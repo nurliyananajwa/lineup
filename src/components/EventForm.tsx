@@ -41,8 +41,8 @@ export default function EventForm({ action, venues, initial, posterUrl }: Props)
           <input name="ends_at" type="datetime-local" required defaultValue={v.ends_at} />
         </label>
         <label className="field">
-          <span>Venue</span>
-          <select name="venue_id" defaultValue={v.venue_id}>
+          <span id="event-venue-label">Venue</span>
+          <select name="venue_id" aria-labelledby="event-venue-label" defaultValue={v.venue_id}>
             <option value="">Choose a venue…</option>
             {venues.map((venue) => (
               <option key={venue.id} value={venue.id}>
@@ -102,12 +102,14 @@ function GuestsEditor({ initial }: { initial: GuestInput[] }) {
         <button
           type="button"
           className="btn-secondary"
+          disabled={guests.length >= 50}
           onClick={() => setGuests((gs) => [...gs, { name: '', designation: '', organization: '', guest_type: '' }])}
         >
           Add guest
         </button>
       </div>
       {guests.length === 0 && <p className="text-sm text-muted">No guests added.</p>}
+      {guests.length >= 50 && <p className="text-sm text-muted">You can add up to 50 guests.</p>}
       {guests.map((g, i) => (
         <div key={i} className="grid gap-3 rounded-lg border border-zinc-200 p-3 sm:grid-cols-[1fr_1fr_1fr_8rem_auto]">
           <input aria-label="Guest name" placeholder="Name" value={g.name} onChange={(e) => update(i, 'name', e.target.value)} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm" />

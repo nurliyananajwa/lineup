@@ -2,15 +2,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { parseId } from '@/lib/queries'
+import { loadAttendees } from '@/lib/attendees'
+import { csvCell as cell } from '@/lib/csv'
 
 // A spreadsheet cell starting with = + - @ can run as a formula when opened in Excel.
 // Prefixing an apostrophe keeps attendee-typed text as plain text.
-function cell(value: string | null | undefined) {
-  let v = value ?? ''
-  if (/^[=+\-@\t\r]/.test(v)) v = `'${v}`
-  return `"${v.replace(/"/g, '""')}"`
-}
-
 const myt = (iso: string | null) =>
   iso
     ? new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kuala_Lumpur', dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso))
@@ -24,16 +20,17 @@ export async function GET(_req: NextRequest, ctx: RouteContext<'/check-in/[id]/a
   if (!id) return new NextResponse('Not found', { status: 404 })
 
   const supabase = await createClient()
-  const { data: event } = await supabase.from('events').select('id, name, organizer_id').eq('id', id).maybeSingle()
+  const { data: event, error: eventError } = await supabase.from('events').select('id, name, organizer_id').eq('id', id).maybeSingle()
+  if (eventError) return new NextResponse('Could not load the event. Please try again.', { status: 503 })
   if (!event || (profile.role !== 'admin' && event.organizer_id !== profile.id)) {
     return new NextResponse('Not found', { status: 404 })
   }
 
-  const { data: tickets } = await supabase
-    .from('tickets')
-    .select('name, email, created_at, attended, checked_in_at')
-    .eq('event_id', id)
-    .order('name')
+  // Fetch every page: Supabase limits an unpaginated response to 1,000 rows.
+  let tickets: Awaited<ReturnType<typeof loadAttendees>>
+  try { tickets = await loadAttendees(supabase, id) }
+  catch { return new NextResponse('Could not export attendees. Please try again.', { status: 503 }) }
+  tickets.sort((a, b) => a.name.localeCompare(b.name))
 
   const rows = [
     ['Name', 'Email', 'Registered', 'Checked in', 'Check-in time'].map(cell).join(','),

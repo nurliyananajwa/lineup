@@ -4,7 +4,7 @@ import type { Database } from '@/lib/database.types'
 
 // Runs before every page request (see src/proxy.ts).
 // Keeps the login session fresh and sends logged-out visitors away from private pages.
-const PRIVATE_PREFIXES = ['/dashboard', '/admin', '/organizer']
+const PRIVATE_PREFIXES = ['/dashboard', '/admin', '/organizer', '/check-in']
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -31,11 +31,14 @@ export async function updateSession(request: NextRequest) {
   const user = data?.claims
 
   const path = request.nextUrl.pathname
-  if (!user && PRIVATE_PREFIXES.some((p) => path.startsWith(p))) {
+  if (!user && PRIVATE_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    url.searchParams.set('next', path)
-    return NextResponse.redirect(url)
+    url.search = ''
+    url.searchParams.set('next', path + request.nextUrl.search)
+    const redirected = NextResponse.redirect(url)
+    response.cookies.getAll().forEach((cookie) => redirected.cookies.set(cookie))
+    return redirected
   }
 
   return response

@@ -12,7 +12,8 @@ async function VenuesPageContent({ searchParams }: PageProps<'/admin/venues'>) {
   await requireRole('admin')
   const { error } = await searchParams
   const supabase = await createClient()
-  const { data: venues } = await supabase.from('venues').select('*').order('name')
+  const { data: venues, error: loadError } = await supabase.from('venues').select('*').order('name')
+  if (loadError) throw new Error('Could not load venues.')
 
   return (
     <div className="space-y-8">
@@ -20,6 +21,7 @@ async function VenuesPageContent({ searchParams }: PageProps<'/admin/venues'>) {
       {error === 'in-use' && (
         <p className="alert-error">That venue has events booked, so it can&apos;t be deleted.</p>
       )}
+      {error === 'delete' && <p className="alert-error">Could not delete the venue. Please try again.</p>}
 
       <div className="card overflow-x-auto p-0">
         <table className="w-full text-left text-sm">

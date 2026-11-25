@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { after } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import { sendTicketEmail } from '@/lib/email'
 
 export type RegisterState = { error?: string } | undefined
@@ -14,7 +14,7 @@ export async function register(eventId: number, _prev: RegisterState, formData: 
   const email = String(formData.get('email') ?? '').trim()
   if (!name || !email) return { error: 'Enter your name and email.' }
 
-  const supabase = await createClient()
+  const supabase = await createPublicClient()
   const { data: token, error } = await supabase.rpc('register_for_event', {
     p_event_id: eventId, p_name: name, p_email: email,
   })

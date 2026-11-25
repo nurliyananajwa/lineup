@@ -35,8 +35,8 @@ export async function updateVenue(id: number, _prev: VenueFormState, formData: F
   if ('error' in parsed) return { error: parsed.error }
 
   const supabase = await createClient()
-  const { error } = await supabase.from('venues').update(parsed.venue).eq('id', id)
-  if (error) return { error: 'Could not save the venue.' }
+  const { data, error } = await supabase.from('venues').update(parsed.venue).eq('id', id).select('id')
+  if (error || !data?.length) return { error: 'Could not save the venue.' }
   revalidatePath('/admin/venues')
   redirect('/admin/venues')
 }
@@ -44,9 +44,10 @@ export async function updateVenue(id: number, _prev: VenueFormState, formData: F
 export async function deleteVenue(id: number) {
   await requireRole('admin')
   const supabase = await createClient()
-  const { error } = await supabase.from('venues').delete().eq('id', id)
+  const { data, error } = await supabase.from('venues').delete().eq('id', id).select('id')
   // A venue that already has events can't be deleted (the database blocks it).
-  if (error) redirect('/admin/venues?error=in-use')
+  if (error?.code === '23503') redirect('/admin/venues?error=in-use')
+  if (error || !data?.length) redirect('/admin/venues?error=delete')
   revalidatePath('/admin/venues')
   redirect('/admin/venues')
 }

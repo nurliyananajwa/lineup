@@ -22,7 +22,9 @@ export type EventFormState = { error?: string; values?: EventFormValues; attempt
 export function malaysiaLocalToIso(local: string) {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local)) return null
   const d = new Date(`${local}:00+08:00`)
-  return Number.isNaN(d.getTime()) ? null : d.toISOString()
+  // Date normalizes impossible days (e.g. February 30); reject them instead.
+  if (Number.isNaN(d.getTime()) || isoToMalaysiaLocal(d.toISOString()) !== local) return null
+  return d.toISOString()
 }
 
 // The reverse, for filling the date picker when editing.
@@ -78,7 +80,7 @@ export function validateEvent(v: EventFormValues, submitting: boolean) {
     if (!v.objectives) return { error: 'Add the event objectives before submitting.' } as const
   }
   const venueId = v.venue_id ? Number(v.venue_id) : null
-  if (venueId !== null && !Number.isInteger(venueId)) return { error: 'Choose a valid venue.' } as const
+  if (venueId !== null && (!Number.isSafeInteger(venueId) || venueId < 1)) return { error: 'Choose a valid venue.' } as const
 
   return {
     row: {
