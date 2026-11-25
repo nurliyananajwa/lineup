@@ -3,7 +3,7 @@ name: Lineup checks
 on:
   pull_request:
   push:
-    branches: [main, 'fix/**']
+    branches: [main, 'fix/**', 'feat/**']
 
 permissions:
   contents: read
