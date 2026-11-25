@@ -1,7 +1,9 @@
 import 'server-only'
+import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { buildDashboardModel, type DashboardSourceEvent, type DashboardTicket } from './dashboard-model'
 export async function getDashboardData(profile: { id: string; role: 'admin' | 'organizer' }) {
+  await connection()
   const supabase = await createClient()
   // Page complete datasets; totals and charts must not silently stop at 1,000 rows.
   async function loadEvents() {

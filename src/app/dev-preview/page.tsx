@@ -2,12 +2,14 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
+import { connection } from 'next/server'
 import Dashboard from '@/components/workspace/Dashboard'
 import WorkspaceShell from '@/components/workspace/WorkspaceShell'
 import { getPreviewDashboard } from '@/lib/dashboard-preview'
 
 export const metadata = { title: 'Development preview · Lineup', robots: { index: false, follow: false } }
 async function PreviewContent({ searchParams }: PageProps<'/dev-preview'>) {
+  await connection()
   const host = (await headers()).get('host') ?? ''
   if (!/^((localhost|127\.0\.0\.1)(:\d+)?|\[::1\](:\d+)?)$/.test(host)) notFound()
   const query = await searchParams
