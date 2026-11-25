@@ -66,6 +66,7 @@
 }
 
 .workspace-body {
+  --workspace-content-inset: 36px;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -73,15 +74,19 @@
 }
 
 .workspace-topbar {
-  height: 76px;
+  width: calc(min(100%, 1580px) - var(--workspace-content-inset) - var(--workspace-content-inset));
+  min-height: 56px;
+  margin: var(--workspace-sidebar-gap) auto 0;
+  padding: 8px 15px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 36px;
-  border-bottom: 1px solid var(--ws-glass-rim);
+  gap: 10px;
+  border: 1px solid var(--ws-glass-rim);
+  border-radius: var(--ws-card-radius);
   background: var(--ws-glass);
   backdrop-filter: var(--ws-glass-blur);
+  box-shadow: var(--ws-glass-shadow);
 }
 
 .workspace-breadcrumb {
@@ -124,7 +129,7 @@
 }
 
 .workspace-main {
-  padding: 33px 36px 28px;
+  padding: 20px var(--workspace-content-inset) 28px;
   width: 100%;
   max-width: 1580px;
   margin: 0 auto;
@@ -1274,9 +1279,9 @@
   flex: none;
   width: 36px;
   height: 36px;
-  border-color: var(--ws-glass-rim);
-  background: #ffffff65;
-  color: var(--ws-purple-dark);
+  border-color: transparent;
+  background: transparent;
+  color: var(--ws-muted);
 }
 
 .workspace-sidebar {
@@ -2388,8 +2393,8 @@
 }
 
 @media (min-width: 1500px) {
-  .workspace-main {
-    padding: 38px 44px 30px;
+  .workspace-body {
+    --workspace-content-inset: 44px;
   }
   .dashboard-stat {
     padding: 20px 23px;
@@ -2409,11 +2414,8 @@
 }
 
 @media (max-width: 1279px) {
-  .workspace-main {
-    padding: 27px 25px;
-  }
-  .workspace-topbar {
-    padding: 0 25px;
+  .workspace-body {
+    --workspace-content-inset: 25px;
   }
   .workspace-footer {
     padding-left: 25px;
@@ -2474,9 +2476,8 @@
   .workspace-sidebar {
     display: none;
   }
-  .workspace-topbar {
-    height: 65px;
-    padding: 0 24px;
+  .workspace-body {
+    --workspace-content-inset: 24px;
   }
   .mobile-menu-trigger {
     display: inline-flex;
@@ -2486,9 +2487,6 @@
   }
   .workspace-breadcrumb {
     gap: 12px;
-  }
-  .workspace-main {
-    padding: 28px 24px;
   }
   .workspace-role {
     display: block;
@@ -2525,9 +2523,8 @@
 }
 
 @media (min-width: 1024px) and (max-width: 1120px) {
-  .workspace-main {
-    padding-left: 22px;
-    padding-right: 22px;
+  .workspace-body {
+    --workspace-content-inset: 22px;
   }
 }
 
@@ -2590,12 +2587,16 @@
 }
 
 @media (max-width: 539px) {
+  .workspace-body {
+    --workspace-content-inset: 14px;
+  }
   .workspace-topbar {
-    height: 62px;
-    padding: 0 17px;
+    min-height: 52px;
+    margin-top: 12px;
+    padding-inline: 9px;
   }
   .workspace-main {
-    padding: 25px 17px 20px;
+    padding-block: 14px 20px;
   }
   .workspace-breadcrumb > span:first-of-type {
     display: none;
