@@ -38,9 +38,16 @@
 }
 .dashboard-masthead h1 { margin: 0 0 4px; font-size: 28px; font-weight: 700; letter-spacing: -.045em; }
 .dashboard-masthead p { margin: 0; color: var(--ws-muted); font-size: 13px; }
-.dashboard-columns { grid-template-columns: minmax(0, 1fr) minmax(230px, 29%); gap: 16px; }
-.dashboard-primary-column, .dashboard-secondary-column { gap: 16px; }
-.dashboard-stats { gap: 10px; margin: 0; }
+.dashboard {
+  --dashboard-card-gap: 16px;
+}
+.dashboard .dashboard-columns {
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 29%);
+  gap: var(--dashboard-card-gap);
+}
+.dashboard .dashboard-primary-column,
+.dashboard .dashboard-secondary-column { gap: var(--dashboard-card-gap); }
+.dashboard .dashboard-stats { gap: var(--dashboard-card-gap); margin: 0; }
 .dashboard-stat { padding: 12px; }
 .dashboard-stat > strong { margin: 4px 0; font-size: 27px; }
 .stat-icon.tone-purple, .activity-icon.tone-purple { background: #eaf2ff; color: #2359ba; }
@@ -62,7 +69,13 @@
 .workspace-shell .calendar-days button:not(.is-selected):hover { background: #eaf2ff; color: #1f4e9e; }
 .venue-map-content select { background: #f5f7fa; }
 .area-grid { stroke: #e2e8f0; }
-.dashboard-analytics { grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr); gap: 12px; }
+.dashboard .dashboard-analytics {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr);
+  gap: var(--dashboard-card-gap);
+}
+.registration-panel .panel-heading { flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.registration-panel .panel-heading h2 { flex: 0 0 auto; max-width: 100%; }
+.registration-panel .panel-heading select { max-width: 100%; }
 .dashboard-panel, .dashboard-stat { border-radius: 13px; }
 .panel-heading { padding-top: 15px; }
 .panel-heading h2 { font-size: 15px; }
@@ -112,10 +125,10 @@
 
 @media (max-width: 1150px) {
   .dashboard-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .dashboard-analytics { grid-template-columns: minmax(0,1fr); }
+  .dashboard .dashboard-analytics { grid-template-columns: minmax(0,1fr); }
 }
 @media (max-width: 767px) {
-  .dashboard-columns { grid-template-columns: minmax(0,1fr); }
+  .dashboard .dashboard-columns { grid-template-columns: minmax(0,1fr); }
 }
 @media (max-width: 539px) {
   .event-gallery-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
