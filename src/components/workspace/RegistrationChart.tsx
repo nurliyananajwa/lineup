@@ -20,7 +20,7 @@ export default function RegistrationChart({ points, total }: { points: Point[]; 
           <polyline className="area-line" points={line} />
           {points.map((point, index) => (
             <circle key={point.date} cx={coordinates[index].x} cy={coordinates[index].y} r={points.length === 7 ? 4 : 2.5}>
-              <title>{label.format(new Date(point.date))}: {point.count} registrations</title>
+              <title>{`${label.format(new Date(point.date))}: ${point.count} registrations`}</title>
             </circle>
           ))}
         </svg>
