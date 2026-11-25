@@ -91,9 +91,24 @@ jobs:
           done
           test "$ready" = 1
           node e2e/browser.mjs
+      - name: Verify development-only dashboard preview
+        shell: bash
+        env:
+          LINEUP_PREVIEW_TEST_URL: http://localhost:3002
+        run: |
+          node node_modules/next/dist/bin/next dev --port 3002 > /tmp/lineup-dev-server.log 2>&1 &
+          ready=0
+          for attempt in {1..60}; do
+            if curl --fail --silent http://localhost:3002/login > /dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          test "$ready" = 1
+          node e2e/dev-preview.mjs
       - name: Print server log on failure
         if: failure()
-        run: cat /tmp/lineup-server.log 2>/dev/null || true
+        run: |
+          cat /tmp/lineup-server.log 2>/dev/null || true
+          cat /tmp/lineup-dev-server.log 2>/dev/null || true
       - name: Stop disposable database
         if: always()
         run: supabase stop --no-backup
