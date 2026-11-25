@@ -207,3 +207,21 @@
   .venue-map-content { grid-template-columns: minmax(0, 1fr); }
   .venue-event-list { max-height: 220px; }
 }
+
+.dashboard-updates-stack { display: flex; flex-direction: column; min-width: 0; gap: var(--dashboard-card-gap); }
+.activity-panel .panel-heading { flex-wrap: wrap; }
+.latest-update {
+  margin: 12px 16px 14px;
+  padding: 12px 13px;
+  border: 1px solid #ceddf2;
+  border-left: 3px solid var(--ws-purple);
+  border-radius: 8px;
+  background: #eef4ff;
+}
+.latest-update-meta { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 3px 8px; }
+.latest-update-meta span { color: #1f4e9e; font-size: 11px; font-weight: 650; }
+.latest-update-meta time { color: var(--ws-muted); font-size: 11px; }
+.latest-update p { margin: 8px 0 3px; color: var(--ws-muted); font-size: 12px; }
+.latest-update h3 { margin: 0; color: var(--ws-ink); font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.latest-update h3 a { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.latest-update h3 a:hover { color: var(--ws-purple); text-decoration: underline; }

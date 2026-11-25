@@ -27,6 +27,7 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
   const points = data.trend.slice(-period)
   const recentCount = points.reduce((n, p) => n + p.count, 0)
   const featured = data.upcoming[0]
+  const [latestUpdate, ...earlierUpdates] = data.activity
   const attendanceRate = data.registrations ? Math.round(data.checkedIn / data.registrations * 100) : 0
   const stats: { label: string; value: number; note: string; icon: IconName; tone: string }[] = [
     { label: 'Upcoming events', value: data.upcoming.length, note: 'Approved & on the calendar', icon: 'calendar-event', tone: 'purple' },
@@ -95,29 +96,69 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
       </section>
     </div>
     <aside className="dashboard-secondary-column" aria-label="Schedule">
-      <section className="dashboard-panel featured-event" aria-labelledby="spotlight-title">
-        <div className="panel-heading"><h2 id="spotlight-title">Upcoming event</h2><Icon name="calendar-event" /></div>
-        {featured ? (
-          <>
-            <div className="featured-event-image">
-              {featured.poster && <Image src={featured.poster} alt="" fill unoptimized sizes="(max-width: 760px) 100vw, 340px" />}
-              <span>{date(featured.startsAt, { day: 'numeric', month: 'short' })}</span>
-            </div>
-            <div className="featured-event-body">
-              <h3>{featured.name}</h3>
-              <p><Icon name="map-pin" />{featured.venue}</p>
-              <p><Icon name="clock" />{formatRange(featured.startsAt, featured.endsAt)}</p>
-              {preview ? (
-                <a className="workspace-text-link" href="#events" onClick={() => { setSearch(''); chooseFilter('upcoming') }}>
-                  View upcoming events <Icon name="arrow-right" />
-                </a>
-              ) : (
-                <Link className="workspace-text-link" href={featured.href}>View details <Icon name="arrow-right" /></Link>
-              )}
-            </div>
-          </>
-        ) : <p className="featured-event-empty">No upcoming events.</p>}
-      </section>
+      <div className="dashboard-updates-stack">
+        <section className="dashboard-panel featured-event" aria-labelledby="spotlight-title">
+          <div className="panel-heading"><h2 id="spotlight-title">Upcoming event</h2><Icon name="calendar-event" /></div>
+          {featured ? (
+            <>
+              <div className="featured-event-image">
+                {featured.poster && <Image src={featured.poster} alt="" fill unoptimized sizes="(max-width: 760px) 100vw, 340px" />}
+                <span>{date(featured.startsAt, { day: 'numeric', month: 'short' })}</span>
+              </div>
+              <div className="featured-event-body">
+                <h3>{featured.name}</h3>
+                <p><Icon name="map-pin" />{featured.venue}</p>
+                <p><Icon name="clock" />{formatRange(featured.startsAt, featured.endsAt)}</p>
+                {preview ? (
+                  <a className="workspace-text-link" href="#events" onClick={() => { setSearch(''); chooseFilter('upcoming') }}>
+                    View upcoming events <Icon name="arrow-right" />
+                  </a>
+                ) : (
+                  <Link className="workspace-text-link" href={featured.href}>View details <Icon name="arrow-right" /></Link>
+                )}
+              </div>
+            </>
+          ) : <p className="featured-event-empty">No upcoming events.</p>}
+        </section>
+        <section className="dashboard-panel activity-panel" aria-labelledby="workspace-activity-title">
+          <div className="panel-heading">
+            <h2 id="workspace-activity-title">Recent updates</h2>
+            <span className="activity-updated">As of {date(data.now, { hour: 'numeric', minute: '2-digit' })}</span>
+          </div>
+          {latestUpdate ? (
+            <article className="latest-update" aria-labelledby="latest-update-title">
+              <div className="latest-update-meta">
+                <span>Latest update</span>
+                <time dateTime={latestUpdate.at}>{date(latestUpdate.at, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</time>
+              </div>
+              <p>{latestUpdate.label}</p>
+              <h3 id="latest-update-title">
+                {preview ? latestUpdate.event : (
+                  <Link href={latestUpdate.href}>
+                    {latestUpdate.event}<Icon name="arrow-up-right" />
+                  </Link>
+                )}
+              </h3>
+            </article>
+          ) : <p className="activity-empty">Your event updates and registrations will appear here.</p>}
+          {earlierUpdates.length > 0 && (
+            <ol className="activity-list workspace-timeline">
+              {earlierUpdates.map(activity => (
+                <li key={activity.id}>
+                  <span className={`activity-icon tone-${activity.tone}`}>
+                    <Icon name={activity.label === 'Latest registration' ? 'ticket' : activity.label === 'Event approved' ? 'circle-check' : 'file-pencil'} />
+                  </span>
+                  <div>
+                    <strong>{activity.label}</strong>
+                    {preview ? <span className="activity-event">{activity.event}</span> : <Link href={activity.href}>{activity.event}</Link>}
+                    <time dateTime={activity.at}>{date(activity.at, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</time>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      </div>
       <EventCalendar events={data.events} now={data.now} />
       <section className="dashboard-panel review-summary" aria-labelledby="event-queue-title">
         <div className="panel-heading">
@@ -133,28 +174,6 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
             </a>
           )}
         </div>
-      </section>
-      <section className="dashboard-panel activity-panel" aria-labelledby="workspace-activity-title">
-        <div className="panel-heading">
-          <h2 id="workspace-activity-title">Recent updates</h2>
-          <span className="activity-updated">As of {date(data.now, { hour: 'numeric', minute: '2-digit' })}</span>
-        </div>
-        {data.activity.length ? (
-          <ol className="activity-list workspace-timeline">
-            {data.activity.map(activity => (
-              <li key={activity.id}>
-                <span className={`activity-icon tone-${activity.tone}`}>
-                  <Icon name={activity.label === 'Latest registration' ? 'ticket' : activity.label === 'Event approved' ? 'circle-check' : 'file-pencil'} />
-                </span>
-                <div>
-                  <strong>{activity.label}</strong>
-                  {preview ? <span className="activity-event">{activity.event}</span> : <Link href={activity.href}>{activity.event}</Link>}
-                  <time dateTime={activity.at}>{date(activity.at, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</time>
-                </div>
-              </li>
-            ))}
-          </ol>
-        ) : <p className="activity-empty">Your event updates and registrations will appear here.</p>}
       </section>
     </aside></div>
   </div>
