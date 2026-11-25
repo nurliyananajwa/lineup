@@ -1,4 +1,4 @@
--- Run after system_reliability.sql and event_contact_privacy.sql, in the SAME transaction. The caller must end
+-- Run after migrations and event_contact_privacy.sql, in the SAME transaction. The caller must end
 -- with ROLLBACK. Fixtures use existing demo identities but change no user data.
 create temp table lineup_review_context (key text primary key, value text);
 grant select on lineup_review_context to anon, authenticated;

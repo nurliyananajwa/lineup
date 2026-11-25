@@ -41,8 +41,10 @@ All permissions live in Postgres (`supabase/migrations/`), not only in page code
 Keep `NEXT_PUBLIC_SITE_URL=http://localhost:3001` in `.env.local` for local links.
 `npm run check` runs lint, type checking and the automated unit tests.
 
-Apply the additive `supabase/changes/system_reliability.sql` before using the new
-event-save action. Apply `supabase/changes/event_contact_privacy.sql` only after
+The event-save database update is included in
+`supabase/migrations/20261125013020_system_reliability.sql` and has already been
+applied to the connected Lineup project. Apply outstanding migrations only once.
+Apply `supabase/changes/event_contact_privacy.sql` only after
 every deployment using this database has the updated public-client queries.
 
 To make yourself an admin, sign up, then run in the Supabase SQL editor:
