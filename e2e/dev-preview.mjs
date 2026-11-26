@@ -21,7 +21,10 @@ try {
   await page.goto(base, { waitUntil: 'domcontentloaded' })
   const mainNav = page.getByRole('navigation', { name: 'Main navigation', exact: true })
   await mainNav.getByRole('link', { name: 'Lineup', exact: true }).waitFor()
-  assert.equal(await mainNav.evaluate(node => getComputedStyle(node.parentElement).backgroundColor), 'rgba(255, 255, 255, 0.702)')
+  await page.waitForFunction(() => {
+    const header = document.querySelector('nav[aria-label="Main navigation"]')?.closest('header')
+    return header && getComputedStyle(header).backgroundColor === 'rgba(255, 255, 255, 0.702)'
+  })
   const featured = page.getByRole('region', { name: 'Featured events', exact: true })
   const gallery = featured.getByRole('list', { name: 'Featured event posters' })
   const cards = gallery.getByRole('listitem')
