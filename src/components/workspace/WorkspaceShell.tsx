@@ -152,10 +152,10 @@ function WorkspaceToolbar({ profile, pathname, today, preview, openNavigation }:
           <div className="workspace-toolbar-account-panel"><WorkspaceExit preview={preview} /></div>
         </details>
       </div>
-      <dialog ref={search} className="workspace-search-dialog" aria-labelledby="workspace-search-title"
+      <dialog ref={search} className="workspace-dialog" aria-labelledby="workspace-search-title"
         onClose={() => setQuery('')} onClick={event => { if (event.target === event.currentTarget) search.current?.close() }}>
-        <div className="workspace-search-content">
-          <div className="workspace-search-heading">
+        <div className="workspace-dialog-content">
+          <div className="workspace-dialog-heading">
             <h2 id="workspace-search-title">Search workspace</h2>
             <button type="button" className="workspace-icon-button" aria-label="Close search" onClick={() => search.current?.close()}><Icon name="x" /></button>
           </div>

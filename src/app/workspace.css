@@ -217,8 +217,8 @@
   transition: content-visibility var(--ws-motion-fast) allow-discrete;
 }
 
-.workspace-search-dialog {
-  width: min(460px, calc(100% - 28px));
+.workspace-dialog {
+  width: min(var(--ws-dialog-width, 460px), calc(100% - 28px));
   max-height: calc(100dvh - 28px);
   margin: auto;
   padding: 0;
@@ -231,14 +231,14 @@
   --ws-dialog-inset: translateY(9px) scale(.97);
 }
 
-:is(.workspace-search-dialog, .workspace-mobile-menu) {
+:is(.workspace-dialog, .workspace-mobile-menu) {
   opacity: 0;
   transform: var(--ws-dialog-inset);
   transition: opacity var(--ws-motion-fast), transform var(--ws-motion-fast),
     display var(--ws-motion-fast) allow-discrete, overlay var(--ws-motion-fast) allow-discrete;
 }
 
-:is(.workspace-search-dialog, .workspace-mobile-menu)[open] {
+:is(.workspace-dialog, .workspace-mobile-menu)[open] {
   opacity: 1;
   transform: none;
 
@@ -248,7 +248,7 @@
   }
 }
 
-:is(.workspace-search-dialog, .workspace-mobile-menu)::backdrop {
+:is(.workspace-dialog, .workspace-mobile-menu)::backdrop {
   background-color: #172c475c;
   backdrop-filter: var(--ws-backdrop-blur);
   opacity: 0;
@@ -256,7 +256,7 @@
     overlay var(--ws-motion-fast) allow-discrete;
 }
 
-:is(.workspace-search-dialog, .workspace-mobile-menu)[open]::backdrop {
+:is(.workspace-dialog, .workspace-mobile-menu)[open]::backdrop {
   opacity: 1;
 
   @starting-style {
@@ -264,11 +264,11 @@
   }
 }
 
-.workspace-search-content {
+.workspace-dialog-content {
   padding: 16px;
 }
 
-.workspace-search-heading {
+.workspace-dialog-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -276,12 +276,12 @@
   gap: 10px;
 }
 
-.workspace-search-heading h2 {
+.workspace-dialog-heading h2 {
   font-size: 16px;
   font-weight: 650;
 }
 
-.workspace-search-dialog input {
+.workspace-dialog input {
   width: 100%;
   min-height: 44px;
   padding: 8px 12px;
@@ -1386,12 +1386,16 @@
   font-size: 13px;
 }
 
-.venue-map-content iframe {
+.venue-map-dialog {
+  --ws-dialog-width: 620px;
+}
+
+.venue-map-dialog iframe {
   display: block;
   border: 1px solid var(--ws-border);
   border-radius: 10px;
   width: 100%;
-  height: 220px;
+  height: clamp(180px, 48dvh, 350px);
   margin-top: 12px;
 }
 
@@ -1678,15 +1682,22 @@
 
 .dashboard-panel, .dashboard-stat, .needs-attention, .review-summary {
   background: var(--card-glass, var(--ws-glass));
-  backdrop-filter: var(--ws-glass-blur);
-  border: 1px solid var(--ws-glass-rim);
+  backdrop-filter: var(--card-filter, var(--ws-glass-blur));
+  border: 1px solid var(--card-border, var(--ws-glass-rim));
   border-radius: var(--ws-card-radius);
-  box-shadow: var(--ws-glass-shadow);
+  box-shadow: var(--card-shadow, var(--ws-glass-shadow));
 }
 
 .dashboard-panel {
   min-width: 0;
   scroll-margin-top: 24px;
+}
+
+.ticket-insights, .registration-panel, .status-panel, .events-panel, .needs-attention, .review-summary {
+  --card-glass: #fcfdff;
+  --card-filter: none;
+  --card-border: var(--ws-border);
+  --card-shadow: 0 4px 14px #29496710;
 }
 
 .dashboard-stat {
@@ -2396,15 +2407,9 @@
   font-size: 11px;
 }
 
-.venue-map-preview iframe {
-  min-height: 196px;
-  margin-top: 8px;
-}
-
 .venue-map-location {
   display: grid;
   gap: 4px;
-  margin-top: 12px;
   margin: 0;
 }
 
@@ -2443,7 +2448,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px 16px;
-  --card-glass: var(--ws-glass-tint);
+  --card-glass: #f0f4f9;
 }
 
 .review-summary h2 {

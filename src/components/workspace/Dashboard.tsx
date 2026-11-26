@@ -71,11 +71,11 @@ export default function Dashboard({ profile, data, preview = false }: { profile:
               <li key={event.id}>
                 <div><strong>{event.name}</strong><p>{event.reviewComment || 'The reviewer requested changes to this event.'}</p></div>
                 {preview ? (
-                  <a href="#events" className="workspace-text-link" onClick={() => { setSearch(event.name); chooseFilter('rejected') }}>
-                    Review requested changes <Icon name="arrow-right" />
+                  <a href="#events" className="workspace-primary" aria-label={`Review changes for ${event.name}`} onClick={() => { setSearch(event.name); chooseFilter('rejected') }}>
+                    Review changes <Icon name="arrow-right" />
                   </a>
                 ) : (
-                  <Link href={event.href} className="workspace-text-link">Review requested changes <Icon name="arrow-right" /></Link>
+                  <Link href={event.href} className="workspace-primary" aria-label={`Review changes for ${event.name}`}>Review changes <Icon name="arrow-right" /></Link>
                 )}
               </li>
             ))}
