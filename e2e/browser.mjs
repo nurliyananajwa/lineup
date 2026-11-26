@@ -195,14 +195,14 @@ try {
   await capture(admin, 'admin-desktop')
   await organizer.setViewportSize({ width: 375, height: 812 })
   assert.ok(await organizer.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
-  for (const section of ['Schedule', 'Event calendar']) {
-    const panel = await organizer.getByRole(section === 'Schedule' ? 'complementary' : 'region', { name: section, exact: true }).boundingBox()
+  for (const section of ['Event highlights and updates', 'Event calendar']) {
+    const panel = await organizer.getByRole(section === 'Event calendar' ? 'region' : 'complementary', { name: section, exact: true }).boundingBox()
     assert.ok(panel && panel.width >= 330, `${section} should fill the mobile content width`)
   }
   await organizer.getByRole('button', { name: 'Open navigation', exact: true }).click()
   await organizer.getByRole('dialog', { name: 'Workspace menu', exact: true }).waitFor()
   await organizer.keyboard.press('Escape')
-  assert.equal(await organizer.getByRole('dialog', { name: 'Workspace menu' }).count(), 0)
+  await organizer.getByRole('dialog', { name: 'Workspace menu' }).waitFor({ state: 'hidden' })
   await capture(organizer, 'organizer-mobile')
   await organizer.setViewportSize({ width: 1280, height: 800 })
   console.log('PASS responsive dashboard, mobile navigation and visual captures')
