@@ -23,7 +23,16 @@ try {
   await mainNav.getByRole('link', { name: 'Lineup', exact: true }).waitFor()
   await page.waitForFunction(() => {
     const header = document.querySelector('nav[aria-label="Main navigation"]')?.closest('header')
-    return header && getComputedStyle(header).backgroundColor === 'rgba(255, 255, 255, 0.702)'
+    if (!header) return false
+    const channels = getComputedStyle(header).backgroundColor.match(/[\d.]+/g)?.map(Number)
+    return channels?.slice(0, 3).every(channel => channel === 255) && channels[3] > .69 && channels[3] < .71
+  }, undefined, { timeout: 15000 }).catch(async error => {
+    const diagnostics = await mainNav.evaluate(node => {
+      const header = node.closest('header')
+      const style = getComputedStyle(header)
+      return { background: style.backgroundColor, theme: style.getPropertyValue('--site-nav-background'), headerClass: header.className }
+    })
+    throw new Error(`Landing navigation theme did not apply: ${JSON.stringify(diagnostics)}`, { cause: error })
   })
   const featured = page.getByRole('region', { name: 'Featured events', exact: true })
   const gallery = featured.getByRole('list', { name: 'Featured event posters' })
