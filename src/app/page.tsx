@@ -1,11 +1,16 @@
 import { Suspense } from 'react'
+import FeaturedEvents from '@/components/FeaturedEvents'
+import Icon from '@/components/workspace/Icon'
+import { sampleLandingEvents } from '@/lib/landing-preview'
+import type { LandingEvent } from '@/lib/landing-event'
+import './landing.css'
 import Loading from '@/components/Loading'
 import Link from 'next/link'
 import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public'
 import { formatRange } from '@/lib/format'
 
-export const metadata = { title: 'Upcoming events · Lineup' }
+export const metadata = { title: 'Discover events · Lineup' }
 
 // Public home page: upcoming approved events.
 // No "status = approved" filter is needed for safety: the database only ever
@@ -22,38 +27,59 @@ async function HomePageContent() {
     .gte('ends_at', new Date().toISOString())
     .order('starts_at')
 
+  const live: (LandingEvent & { href: string })[] = (events ?? []).map(event => ({
+    id: String(event.id), name: event.name, time: formatRange(event.starts_at, event.ends_at),
+    venue: event.venues?.name ?? '', poster: event.poster_url, href: `/events/${event.id}`,
+  }))
+  const samples = process.env.NODE_ENV === 'development'
+  const featured = samples ? sampleLandingEvents() : live.slice(0, 8)
+
   return (
-    <div className="space-y-8">
-      <section>
-        <h1 className="text-3xl font-bold tracking-tight">Upcoming events</h1>
-        <p className="mt-2 text-muted">Find an event, register in seconds, and get your QR ticket.</p>
+    <div className="landing-home">
+      <section className="landing-hero" aria-labelledby="landing-title">
+        <div className="landing-hero-copy">
+          <h1 id="landing-title">Good things<br />are happening.</h1>
+          <p>Discover events, reserve your spot, and get your QR ticket with Lineup.</p>
+          <a className="landing-primary" href={featured.length ? '#featured-events-title' : '#events'}>Explore events <Icon name="arrow-right" /></a>
+        </div>
+        <div className="landing-hero-art" aria-hidden="true">
+          <div className="landing-pass">
+            <span>Lineup</span>
+            <Icon name="ticket" />
+          </div>
+        </div>
       </section>
 
-      {error && <p className="alert-error">Couldn&apos;t load events. Please try again.</p>}
+      {featured.length > 0 && <FeaturedEvents events={featured} samples={samples} />}
 
-      {events && events.length === 0 && (
-        <div className="card text-center text-muted">No upcoming events yet. Check back soon.</div>
-      )}
-
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {events?.map((e) => (
-          <li key={e.id}>
-            <Link href={`/events/${e.id}`} className="card block h-full p-0 transition hover:shadow-md">
-              {e.poster_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={e.poster_url} alt="" className="h-40 w-full rounded-t-xl object-cover" />
-              ) : (
-                <div className="h-40 rounded-t-xl bg-gradient-to-br from-indigo-500 to-violet-500" />
-              )}
-              <div className="space-y-1 p-4">
-                <h2 className="font-semibold">{e.name}</h2>
-                <p className="text-sm text-muted">{formatRange(e.starts_at, e.ends_at)}</p>
-                {e.venues?.name && <p className="text-sm text-muted">{e.venues.name}</p>}
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <section className="landing-list" id="events" aria-labelledby="upcoming-events-title">
+        <div className="landing-section-head">
+          <h2 id="upcoming-events-title">Upcoming events</h2>
+        </div>
+        {error && <p className="alert-error">Couldn&apos;t load upcoming events. Please try again.</p>}
+        {!error && live.length === 0 && <p className="landing-empty">No upcoming events yet. Check back soon.</p>}
+        {live.length > 0 && (
+          <ul className="landing-event-grid">
+            {live.map(event => (
+              <li key={event.id}>
+                <Link href={event.href} className="landing-event-card">
+                  <div className="landing-event-poster">
+                    {event.poster && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={event.poster} alt="" loading="lazy" />
+                    )}
+                  </div>
+                  <div>
+                    <h3>{event.name}</h3>
+                    <p>{event.time}</p>
+                    {event.venue && <p>{event.venue}</p>}
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   )
 }
