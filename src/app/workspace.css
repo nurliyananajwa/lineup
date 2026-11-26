@@ -2496,6 +2496,7 @@
 }
 
 .review-summary p strong {
+  margin-inline-end: 5px;
   color: var(--ws-ink);
   font-size: 18px;
   font-variant-numeric: tabular-nums;
