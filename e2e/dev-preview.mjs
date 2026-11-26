@@ -141,13 +141,21 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   assert.equal(await sidebar.evaluate(node => getComputedStyle(node).transitionDuration), '0s')
   await page.emulateMedia({ reducedMotion: 'no-preference' })
-  for (const width of [1100, 820, 320]) {
+  for (const width of [1440, 1100, 1017, 820, 320]) {
     await page.setViewportSize({ width, height: 812 })
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
     const overviewTracks = await page.locator('.dashboard-columns').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length)
-    assert.equal(overviewTracks, 1, 'Overview should reflow within the available dashboard width')
+    assert.equal(overviewTracks, width === 1440 ? 2 : 1, 'Overview should reflow within the available dashboard width')
     const planningTracks = await planning.evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length)
     assert.equal(planningTracks, width === 320 ? 1 : 2)
+    for (const selector of ['.dashboard-columns', '.dashboard-updates-stack', '.dashboard-planning']) {
+      const row = await page.locator(selector).evaluate(node => {
+        const style = getComputedStyle(node)
+        const [first, second] = Array.from(node.children, card => card.getBoundingClientRect())
+        return { paired: style.display === 'grid' && style.gridTemplateColumns.split(' ').length === 2, difference: Math.abs(first.bottom - second.bottom) }
+      })
+      if (row.paired) assert.ok(row.difference < 1, `Cards in ${selector} should end together at ${width}px`)
+    }
   }
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click()
   await page.getByRole('dialog', { name: 'Workspace menu', exact: true }).getByRole('link', { name: 'Overview', exact: true }).click()
