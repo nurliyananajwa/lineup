@@ -47,7 +47,8 @@ try {
   })
   await page.waitForFunction(() => {
     const poster = document.querySelectorAll('.landing-poster')[4]
-    return new DOMMatrixReadOnly(getComputedStyle(poster).transform).m23 > .1
+    const transform = new DOMMatrixReadOnly(getComputedStyle(poster).transform)
+    return transform.m23 > .25 && transform.m42 > 16
   })
   await entering.evaluate(node => {
     const poster = node.parentElement.getBoundingClientRect()
@@ -55,7 +56,17 @@ try {
   })
   await page.waitForFunction(() => {
     const poster = document.querySelectorAll('.landing-poster')[4]
-    return Math.abs(new DOMMatrixReadOnly(getComputedStyle(poster).transform).m23) < .01
+    const transform = new DOMMatrixReadOnly(getComputedStyle(poster).transform)
+    return Math.abs(transform.m23) < .01 && Math.abs(transform.m42) < 1
+  })
+  await entering.evaluate(node => {
+    const poster = node.parentElement.getBoundingClientRect()
+    window.scrollTo({ top: scrollY + poster.top + poster.height * .7, behavior: 'instant' })
+  })
+  await page.waitForFunction(() => {
+    const poster = document.querySelectorAll('.landing-poster')[4]
+    const transform = new DOMMatrixReadOnly(getComputedStyle(poster).transform)
+    return transform.m23 < -.25 && transform.m42 < -16
   })
   await page.emulateMedia({ reducedMotion: 'reduce' })
   assert.equal(await entering.evaluate(node => getComputedStyle(node).animationName), 'none')

@@ -53,19 +53,20 @@ export default function FeaturedEvents({ events, samples }: { events: LandingEve
               </div>
               <div className="landing-poster-caption">
                 <div>
-                  <h3>{event.href ? (
-                    <Link className="landing-poster-link" href={event.href}>{event.name}</Link>
-                  ) : (
-                    <button type="button" className="landing-poster-link" aria-label={`Preview event: ${event.name}`} onClick={() => {
-                      setSelected(event)
-                      dialog.current?.showModal()
-                    }}>{event.name}</button>
-                  )}</h3>
+                  <h3>{event.name}</h3>
                   <p>{[event.category, event.venue].filter(Boolean).join(' · ')}</p>
                   <p>{event.time}</p>
                 </div>
                 <Icon name="arrow-up-right" />
               </div>
+              {event.href ? (
+                <Link className="landing-poster-link" href={event.href} aria-label={`View event: ${event.name}`} />
+              ) : (
+                <button type="button" className="landing-poster-link" aria-label={`Preview event: ${event.name}`} onClick={() => {
+                  setSelected(event)
+                  dialog.current?.showModal()
+                }} />
+              )}
             </li>
           ))}
         </ul>
