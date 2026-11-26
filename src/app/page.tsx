@@ -3,22 +3,15 @@ import FeaturedEvents from '@/components/FeaturedEvents'
 import Icon from '@/components/workspace/Icon'
 import { sampleLandingEvents } from '@/lib/landing-preview'
 import type { LandingEvent } from '@/lib/landing-event'
-import './landing.css'
+import styles from './landing.module.css'
 import Loading from '@/components/Loading'
 import Link from 'next/link'
-import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public'
 import { formatRange } from '@/lib/format'
 
 export const metadata = { title: 'Discover events · Lineup' }
 
-// Public home page: upcoming approved events.
-// No "status = approved" filter is needed for safety: the database only ever
-// returns approved events to visitors. The filter is here so a logged-in
-// organizer doesn't see their own drafts mixed into the public list.
 async function HomePageContent() {
-  // "Upcoming" depends on the current time, so tell Next.js to work it out per request.
-  await connection()
   const supabase = await createPublicClient()
   const { data: events, error } = await supabase
     .from('events')
@@ -35,32 +28,32 @@ async function HomePageContent() {
   const featured = samples ? sampleLandingEvents() : live.slice(0, 8)
 
   return (
-    <div className="landing-home">
-      <section className="landing-hero" aria-labelledby="landing-title">
-        <div className="landing-hero-copy">
+    <div className={styles.home}>
+      <section className={styles.hero} aria-labelledby="landing-title">
+        <div className={styles.heroCopy}>
           <h1 id="landing-title">Find your<br />next <span>event.</span></h1>
           <p>Discover events, reserve your spot, and get your QR ticket with Lineup.</p>
-          <a className="landing-primary" href={featured.length ? '#featured-events' : '#events'}>Explore events <Icon name="arrow-right" /></a>
+          <a className={styles.primary} href={featured.length ? '#featured-events' : '#events'}>Explore events <Icon name="arrow-right" /></a>
         </div>
-        <div className="landing-hero-art" aria-hidden="true">
-          <div className="landing-hero-photo" />
+        <div className={styles.heroArt} aria-hidden="true">
+          <div className={styles.heroPhoto} />
         </div>
       </section>
 
       {featured.length > 0 && <FeaturedEvents events={featured} samples={samples} />}
 
-      <section className="landing-list" id="events" aria-labelledby="upcoming-events-title">
-        <div className="landing-section-head">
+      <section className={styles.list} id="events" aria-labelledby="upcoming-events-title">
+        <div className={styles.sectionHead}>
           <h2 id="upcoming-events-title">Upcoming events</h2>
         </div>
         {error && <p className="alert-error">Couldn&apos;t load upcoming events. Please try again.</p>}
-        {!error && live.length === 0 && <p className="landing-empty">No upcoming events yet. Check back soon.</p>}
+        {!error && live.length === 0 && <p className={styles.empty}>No upcoming events yet. Check back soon.</p>}
         {live.length > 0 && (
-          <ul className="landing-event-grid">
+          <ul className={styles.eventGrid}>
             {live.map(event => (
               <li key={event.id}>
-                <Link href={event.href} className="landing-event-card">
-                  <div className="landing-event-poster">
+                <Link href={event.href} className={styles.eventCard}>
+                  <div className={styles.eventPoster}>
                     {event.poster && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={event.poster} alt="" loading="lazy" />
@@ -81,7 +74,7 @@ async function HomePageContent() {
   )
 }
 
-// Reading the login cookie happens at request time, so it sits inside <Suspense>.
+// The public client makes this query request-time so the dates stay current.
 export default function HomePage() {
   return (
     <Suspense fallback={<Loading />}>

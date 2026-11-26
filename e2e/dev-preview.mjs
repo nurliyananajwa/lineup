@@ -19,6 +19,9 @@ try {
   assert.equal(production.status(), 404, 'Production must not expose the development preview')
   assert.equal((await production.text()).includes('Sample data. Explore both dashboards'), false)
   await page.goto(base, { waitUntil: 'domcontentloaded' })
+  const mainNav = page.getByRole('navigation', { name: 'Main navigation', exact: true })
+  await mainNav.getByRole('link', { name: 'Lineup', exact: true }).waitFor()
+  assert.equal(await mainNav.evaluate(node => getComputedStyle(node.parentElement).backgroundColor), 'rgba(255, 255, 255, 0.702)')
   const featured = page.getByRole('region', { name: 'Featured events', exact: true })
   const gallery = featured.getByRole('list', { name: 'Featured event posters' })
   const cards = gallery.getByRole('listitem')
@@ -40,13 +43,13 @@ try {
   await featured.getByRole('button', { name: 'All 24', exact: true }).click()
   assert.equal(await cards.count(), 24)
 
-  const entering = cards.nth(4).locator('.landing-poster')
+  const entering = cards.nth(4).getByTestId('landing-poster')
   await entering.evaluate(node => {
     const poster = node.parentElement.getBoundingClientRect()
     window.scrollTo({ top: scrollY + poster.top - innerHeight * .9, behavior: 'instant' })
   })
   await page.waitForFunction(() => {
-    const poster = document.querySelectorAll('.landing-poster')[4]
+    const poster = document.querySelectorAll('[data-testid="landing-poster"]')[4]
     const transform = new DOMMatrixReadOnly(getComputedStyle(poster).transform)
     return transform.m23 > .25 && transform.m42 > 16
   })
@@ -55,7 +58,7 @@ try {
     window.scrollTo({ top: scrollY + poster.top - innerHeight * .35, behavior: 'instant' })
   })
   await page.waitForFunction(() => {
-    const poster = document.querySelectorAll('.landing-poster')[4]
+    const poster = document.querySelectorAll('[data-testid="landing-poster"]')[4]
     const transform = new DOMMatrixReadOnly(getComputedStyle(poster).transform)
     return Math.abs(transform.m23) < .01 && Math.abs(transform.m42) < 1
   })
@@ -64,7 +67,7 @@ try {
     window.scrollTo({ top: scrollY + poster.top + poster.height * .7, behavior: 'instant' })
   })
   await page.waitForFunction(() => {
-    const poster = document.querySelectorAll('.landing-poster')[4]
+    const poster = document.querySelectorAll('[data-testid="landing-poster"]')[4]
     const transform = new DOMMatrixReadOnly(getComputedStyle(poster).transform)
     return transform.m23 < -.25 && transform.m42 < -16
   })
@@ -77,7 +80,12 @@ try {
   assert.ok(mobileFirst && mobileSecond && mobileSecond.y > mobileFirst.y && Math.abs(mobileSecond.x - mobileFirst.x) < 1)
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
   await page.setViewportSize({ width: 1440, height: 1000 })
-  await page.goto(base + '/login')
+  await mainNav.getByRole('link', { name: 'Log in', exact: true }).click()
+  await page.waitForURL('**/login')
+  await page.waitForFunction(() => {
+    const nav = document.querySelector('nav[aria-label="Main navigation"]')
+    return nav && getComputedStyle(nav.parentElement).backgroundColor === 'rgb(255, 255, 255)'
+  })
   await page.getByRole('link', { name: 'Preview without an account', exact: false }).click()
   await page.getByRole('region', { name: 'Development preview', exact: true }).waitFor()
   assert.equal(await page.getByTestId('metric-ticket').textContent(), '72')

@@ -1,0 +1,67 @@
+.header {
+  border-bottom: 1px solid var(--site-nav-border, var(--color-zinc-200, #e4e4e7));
+  background: var(--site-nav-background, #fff);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  max-width: var(--site-nav-width, 64rem);
+  margin-inline: auto;
+  padding: 12px var(--site-nav-gutter, 16px);
+}
+
+.brand {
+  color: var(--site-nav-brand, var(--color-indigo-700, #4338ca));
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  line-height: 1.75rem;
+}
+
+.link, .account, .action {
+  font-size: .875rem;
+  line-height: 1.25rem;
+}
+
+.link {
+  color: var(--site-nav-link, var(--color-zinc-500, #71717a));
+}
+
+.link:hover {
+  color: var(--site-nav-link-hover, var(--color-zinc-900, #18181b));
+}
+
+.account {
+  color: var(--site-nav-muted, var(--color-zinc-500, #71717a));
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.primary {
+  color: #fff;
+  background: var(--site-nav-primary, var(--color-indigo-600, #4f46e5));
+}
+
+.primary:hover {
+  background: var(--site-nav-primary-hover, var(--color-indigo-700, #4338ca));
+}
+
+.secondary {
+  border: 1px solid var(--site-nav-border, var(--color-zinc-300, #d4d4d8));
+  color: var(--site-nav-secondary-text, var(--color-zinc-800, #27272a));
+  background: var(--site-nav-secondary, #fff);
+}
+
+.secondary:hover {
+  background: var(--site-nav-secondary-hover, var(--color-zinc-50, #fafafa));
+}
