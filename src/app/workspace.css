@@ -496,11 +496,15 @@
   color: #756c80;
 }
 
-.dashboard-columns {
+.dashboard-columns, .dashboard-planning {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(230px, 29%);
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 29%);
   gap: var(--dashboard-card-gap);
   align-items: start;
+}
+
+.dashboard-planning, .dashboard > .events-panel {
+  margin-top: var(--dashboard-card-gap);
 }
 
 .dashboard-primary-column {
@@ -510,12 +514,6 @@
   gap: var(--dashboard-card-gap);
 }
 
-.dashboard-secondary-column {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--dashboard-card-gap);
-}
 
 .panel-heading p {
   font-size: 10px;
@@ -1584,6 +1582,7 @@
 }
 
 .dashboard {
+  container: dashboard / inline-size;
   --dashboard-card-gap: 16px;
 }
 
@@ -2724,12 +2723,6 @@
   .workspace-priorities:has(.needs-attention) {
     grid-template-columns: minmax(0, 1fr);
   }
-  .dashboard-columns {
-    grid-template-columns: minmax(0,1fr);
-  }
-  .status-panel {
-    min-height: 287px;
-  }
   .status-breakdown {
     display: flex;
     gap: 14px;
@@ -2737,11 +2730,6 @@
   }
   .status-panel .status-total {
     padding-top: 17px;
-  }
-  .dashboard-secondary-column {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: start;
   }
   .workspace-small-note {
     grid-column: 1/-1;
@@ -3019,10 +3007,6 @@
   .chart-caption {
     font-size: 11px;
   }
-  .dashboard-secondary-column {
-    display: flex;
-    align-items: stretch;
-  }
   .development-preview-bar {
     gap: 12px;
   }
@@ -3043,12 +3027,6 @@
     min-height: 34px;
     padding: 6px 10px;
     padding-inline: 8px;
-  }
-  .dashboard-secondary-column > .dashboard-panel {
-    width: 100%;
-  }
-  .venue-map-content {
-    grid-template-columns: minmax(0, 1fr);
   }
   .venue-event-list {
     max-height: 220px;
@@ -3095,12 +3073,35 @@
   }
 }
 
-@media (max-width: 1150px) {
-  .dashboard-stats {
-    grid-template-columns: repeat(2,minmax(0,1fr));
+@container dashboard (max-width: 940px) {
+  .dashboard-columns {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .dashboard-analytics {
-    grid-template-columns: minmax(0,1fr);
+  .dashboard-updates-stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+@container dashboard (min-width: 681px) and (max-width: 820px) {
+  .venue-map-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container dashboard (max-width: 680px) {
+  .dashboard-planning, .dashboard-analytics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container dashboard (max-width: 580px) {
+  .dashboard-updates-stack, .venue-map-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dashboard-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
