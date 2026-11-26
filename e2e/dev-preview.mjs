@@ -49,6 +49,12 @@ try {
     const position = Number(getComputedStyle(document.querySelector('.landing-stage')).getPropertyValue('--gallery-position'))
     return position > .1 && position < .6
   })
+  const depth = await gallery.locator('.landing-poster').nth(1).evaluate(node => new DOMMatrixReadOnly(getComputedStyle(node).transform).m43)
+  assert.ok(depth < -150, 'The upcoming poster should sit behind the foreground in 3D')
+  await page.waitForFunction(() => {
+    const position = Number(getComputedStyle(document.querySelector('.landing-stage')).getPropertyValue('--gallery-position'))
+    return Math.abs(position - 55 / 215) < .02
+  })
   await page.evaluate(() => window.scrollBy(0, 110))
   await featured.getByRole('heading', { name: 'After Hours Jazz', exact: true }).waitFor()
   await page.setViewportSize({ width: 390, height: 844 })

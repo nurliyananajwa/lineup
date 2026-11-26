@@ -9,7 +9,7 @@ export default function FeaturedEvents({ events, samples }: { events: LandingEve
   const gallery = useRef<HTMLElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const dialog = useRef<HTMLDialogElement>(null)
-  const drag = useRef<{ x: number; position: number } | null>(null)
+  const drag = useRef<{ x: number; start: number; target: number } | null>(null)
   const progress = useRef(0)
   const [active, setActive] = useState(0)
   const [selected, setSelected] = useState<LandingEvent>()
@@ -21,22 +21,55 @@ export default function FeaturedEvents({ events, samples }: { events: LandingEve
     const scene = stage.current
     if (!region || !scene) return
 
-    let frame = 0
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    function paint() {
-      if (!region || !scene) return
+    let frame = 0
+    let sampleScroll = true
+    let lastTime = 0
+    let displayed = 0
+    let announced = 0
+
+    function readScroll() {
+      if (!region || !scene) return 0
       const distance = region.offsetHeight - scene.offsetHeight
-      const position = distance > 0 ? Math.max(0, Math.min(last, -region.getBoundingClientRect().top / distance * last)) : 0
-      const index = Math.round(position)
-      progress.current = position
-      scene.style.setProperty('--gallery-position', String(motion.matches ? index : position))
-      setActive(index)
+      return distance > 0 ? Math.max(0, Math.min(last, -region.getBoundingClientRect().top / distance * last)) : 0
     }
+
+    function render() {
+      const index = Math.round(displayed)
+      scene?.style.setProperty('--gallery-position', String(motion.matches ? index : displayed))
+      if (announced !== index) {
+        announced = index
+        setActive(index)
+      }
+    }
+
+    function paint(time: number) {
+      frame = 0
+      if (sampleScroll) {
+        progress.current = readScroll()
+        sampleScroll = false
+      }
+      const remaining = progress.current - displayed
+      const delta = lastTime ? Math.min(time - lastTime, 40) : 16
+      displayed = motion.matches || Math.abs(remaining) < .002
+        ? progress.current
+        : displayed + remaining * (1 - Math.exp(-delta / 105))
+      render()
+      if (displayed !== progress.current) {
+        lastTime = time
+        frame = requestAnimationFrame(paint)
+      } else {
+        lastTime = 0
+      }
+    }
+
     function schedule() {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(paint)
+      sampleScroll = true
+      if (!frame) frame = requestAnimationFrame(paint)
     }
-    paint()
+
+    displayed = progress.current = readScroll()
+    render()
     window.addEventListener('scroll', schedule, { passive: true })
     window.addEventListener('resize', schedule)
     motion.addEventListener('change', schedule)
@@ -61,16 +94,17 @@ export default function FeaturedEvents({ events, samples }: { events: LandingEve
 
   function startDrag(pointer: PointerEvent<HTMLDivElement>) {
     if (pointer.pointerType !== 'mouse' || pointer.button !== 0 || last < 1) return
-    drag.current = { x: pointer.clientX, position: progress.current }
+    drag.current = { x: pointer.clientX, start: progress.current, target: progress.current }
     pointer.currentTarget.setPointerCapture(pointer.pointerId)
     pointer.currentTarget.dataset.dragging = 'true'
   }
 
   function finishDrag(pointer: PointerEvent<HTMLDivElement>) {
     if (!drag.current) return
+    const target = drag.current.target
     drag.current = null
     delete pointer.currentTarget.dataset.dragging
-    seek(Math.round(progress.current))
+    seek(Math.round(target))
   }
 
   return (
@@ -94,7 +128,12 @@ export default function FeaturedEvents({ events, samples }: { events: LandingEve
           </div>
           <div className="landing-gallery-scene" aria-hidden="true"
             onPointerDown={startDrag}
-            onPointerMove={pointer => { if (drag.current) seek(drag.current.position + (drag.current.x - pointer.clientX) / 220, 'instant') }}
+            onPointerMove={pointer => {
+              const gesture = drag.current
+              if (!gesture) return
+              gesture.target = gesture.start + (gesture.x - pointer.clientX) / 220
+              seek(gesture.target, 'instant')
+            }}
             onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag}>
             {events.map((item, index) => (
               <div className="landing-poster" key={item.id} style={{ '--poster-index': index } as CSSProperties}
