@@ -3105,7 +3105,7 @@
   }
 }
 
-@container dashboard (max-width: 940px) {
+@container dashboard (max-width: 980px) {
   .dashboard-columns {
     grid-template-columns: minmax(0, 1fr);
   }
