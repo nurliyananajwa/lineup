@@ -1,122 +1,119 @@
 'use client'
 
-import { useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import Link from 'next/link'
 import Icon from '@/components/workspace/Icon'
 import type { LandingEvent } from '@/lib/landing-event'
 
 export default function FeaturedEvents({ events, samples }: { events: LandingEvent[]; samples: boolean }) {
-  const viewport = useRef<HTMLUListElement>(null)
+  const gallery = useRef<HTMLElement>(null)
+  const stage = useRef<HTMLDivElement>(null)
   const dialog = useRef<HTMLDialogElement>(null)
-  const drag = useRef<{ x: number; scroll: number; moved: boolean } | null>(null)
-  const suppressClick = useRef(false)
+  const drag = useRef<{ x: number; position: number } | null>(null)
+  const progress = useRef(0)
   const [active, setActive] = useState(0)
   const [selected, setSelected] = useState<LandingEvent>()
+  const event = events[active] ?? events[0]
+  const last = events.length - 1
 
-  function slideWidth(track: HTMLUListElement) {
-    const first = track.children[0] as HTMLElement
-    const second = track.children[1] as HTMLElement | undefined
-    return second ? second.offsetLeft - first.offsetLeft : track.clientWidth
-  }
+  useEffect(() => {
+    const region = gallery.current
+    const scene = stage.current
+    if (!region || !scene) return
 
-  function currentSlide(track: HTMLUListElement) {
-    return Math.max(0, Math.min(events.length - 1, Math.round(track.scrollLeft / slideWidth(track))))
-  }
-
-  function goTo(index: number) {
-    const track = viewport.current
-    if (!track) return
-    const next = Math.max(0, Math.min(events.length - 1, index))
-    track.scrollTo({ left: next * slideWidth(track), behavior: 'auto' })
-  }
-
-  function move(event: PointerEvent<HTMLUListElement>) {
-    const track = event.currentTarget
-    const gesture = drag.current
-    if (!gesture) return
-    const distance = event.clientX - gesture.x
-    if (!gesture.moved && Math.abs(distance) < 6) return
-    if (!gesture.moved) {
-      gesture.moved = true
-      suppressClick.current = true
-      track.setPointerCapture(event.pointerId)
-      track.dataset.dragging = 'true'
+    let frame = 0
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    function paint() {
+      if (!region || !scene) return
+      const distance = region.offsetHeight - scene.offsetHeight
+      const position = distance > 0 ? Math.max(0, Math.min(last, -region.getBoundingClientRect().top / distance * last)) : 0
+      const index = Math.round(position)
+      progress.current = position
+      scene.style.setProperty('--gallery-position', String(motion.matches ? index : position))
+      setActive(index)
     }
-    track.scrollLeft = gesture.scroll - distance
+    function schedule() {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(paint)
+    }
+    paint()
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+    motion.addEventListener('change', schedule)
+    return () => {
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+      motion.removeEventListener('change', schedule)
+      cancelAnimationFrame(frame)
+    }
+  }, [last])
+
+  function seek(position: number, behavior: ScrollBehavior = 'smooth') {
+    const region = gallery.current
+    const scene = stage.current
+    if (!region || !scene || last < 1) return
+    const start = window.scrollY + region.getBoundingClientRect().top
+    const distance = region.offsetHeight - scene.offsetHeight
+    const target = Math.max(0, Math.min(last, position))
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.scrollTo({ top: start + (target / last) * distance, behavior: reduce ? 'instant' : behavior })
   }
 
-  function finish(track: HTMLUListElement) {
+  function startDrag(pointer: PointerEvent<HTMLDivElement>) {
+    if (pointer.pointerType !== 'mouse' || pointer.button !== 0 || last < 1) return
+    drag.current = { x: pointer.clientX, position: progress.current }
+    pointer.currentTarget.setPointerCapture(pointer.pointerId)
+    pointer.currentTarget.dataset.dragging = 'true'
+  }
+
+  function finishDrag(pointer: PointerEvent<HTMLDivElement>) {
     if (!drag.current) return
-    const start = Math.round(drag.current.scroll / slideWidth(track))
-    const delta = track.scrollLeft - drag.current.scroll
-    const moved = drag.current.moved
     drag.current = null
-    delete track.dataset.dragging
-    if (moved) {
-      const target = Math.abs(delta) > 45 ? start + Math.sign(delta) * Math.max(1, Math.round(Math.abs(delta) / slideWidth(track))) : start
-      goTo(target)
-    }
+    delete pointer.currentTarget.dataset.dragging
+    seek(Math.round(progress.current))
   }
 
   return (
-    <section className="landing-feature" aria-labelledby="featured-events-title">
-      <div className="landing-section-head">
-        <div>
-          <h2 id="featured-events-title">Featured events</h2>
-          <p>{samples ? 'Sample lineup · Drag or swipe to explore' : 'Drag or swipe to explore upcoming events'}</p>
-        </div>
-        {events.length > 1 && (
-          <div className="landing-carousel-controls">
-            <span role="status" aria-atomic="true" className="landing-count">{String(active + 1).padStart(2, '0')} / {events.length}</span>
-            <button type="button" aria-label="Previous event" disabled={active === 0} onClick={() => goTo(active - 1)}><Icon name="chevron-left" /></button>
-            <button type="button" aria-label="Next event" disabled={active === events.length - 1} onClick={() => goTo(active + 1)}><Icon name="chevron-right" /></button>
+    <>
+      <section ref={gallery} className="landing-gallery" id="featured-events" aria-labelledby="featured-events-title"
+        style={{ '--gallery-steps': last } as CSSProperties}>
+        <div ref={stage} className="landing-stage"
+          onKeyDown={key => {
+            if (last < 1 || key.target !== key.currentTarget) return
+            const targets: Partial<Record<string, number>> = { ArrowLeft: active - 1, ArrowRight: active + 1, Home: 0, End: last }
+            const next = targets[key.key]
+            if (next !== undefined) {
+              key.preventDefault()
+              seek(next)
+            }
+          }}
+          tabIndex={last > 0 ? 0 : undefined} aria-label="Browse featured events">
+          <div className="landing-gallery-head">
+            <h2 id="featured-events-title">Featured events</h2>
+            <a href="#events">Skip to event listings <Icon name="arrow-up-right" /></a>
           </div>
-        )}
-      </div>
-      <ul ref={viewport} className="landing-track" tabIndex={0} aria-label="Browse featured events"
-        data-single={events.length === 1 || undefined}
-        onScroll={event => setActive(currentSlide(event.currentTarget))}
-        onKeyDown={event => {
-          if (event.target !== event.currentTarget) return
-          const targets: Partial<Record<string, number>> = { ArrowLeft: active - 1, ArrowRight: active + 1, Home: 0, End: events.length - 1 }
-          const next = targets[event.key]
-          if (next !== undefined) {
-            event.preventDefault()
-            goTo(next)
-          }
-        }}
-        onPointerDown={event => {
-          suppressClick.current = false
-          if (event.pointerType === 'mouse' && event.button === 0 && events.length > 1 && !(event.target as HTMLElement).closest('a, button')) {
-            drag.current = { x: event.clientX, scroll: event.currentTarget.scrollLeft, moved: false }
-          }
-        }}
-        onPointerMove={move}
-        onPointerUp={event => finish(event.currentTarget)}
-        onPointerCancel={event => finish(event.currentTarget)}
-        onPointerLeave={event => { if (!drag.current?.moved) finish(event.currentTarget) }}
-        onLostPointerCapture={event => finish(event.currentTarget)}
-        onClickCapture={event => {
-          if (suppressClick.current && event.detail > 0) {
-            event.preventDefault()
-            event.stopPropagation()
-            suppressClick.current = false
-          }
-        }}>
-        {events.map((event, index) => (
-          <li className="landing-slide" data-active={index === active || undefined} key={event.id}>
-            {event.poster && (
-              // The image may be a poster managed by an organiser.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={event.poster} alt="" loading={index < 2 ? 'eager' : 'lazy'} draggable={false} />
-            )}
-            <div className="landing-slide-copy">
-              {event.category && <span className="landing-category">{event.category}</span>}
+          <div className="landing-gallery-scene" aria-hidden="true"
+            onPointerDown={startDrag}
+            onPointerMove={pointer => { if (drag.current) seek(drag.current.position + (drag.current.x - pointer.clientX) / 220, 'instant') }}
+            onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag}>
+            {events.map((item, index) => (
+              <div className="landing-poster" key={item.id} style={{ '--poster-index': index } as CSSProperties}
+                data-active={index === active || undefined} data-in-view={Math.abs(index - active) < 4 || undefined}>
+                {item.poster && Math.abs(index - active) < 4 && (
+                  // Event photos can be provided by organisers.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.poster} alt="" draggable={false} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="landing-gallery-footer">
+            <div className="landing-gallery-copy">
+              <p className="landing-gallery-category">{[samples && 'Sample event', event.category].filter(Boolean).join(' · ') || 'Upcoming event'}</p>
               <h3>{event.name}</h3>
-              <p>{event.time}</p>
-              {event.venue && <p>{event.venue}</p>}
+              <p>{event.time}{event.venue && ` · ${event.venue}`}</p>
               {event.href ? (
-                <Link href={event.href} className="landing-slide-link" aria-label={`View event: ${event.name}`}>View event <Icon name="arrow-up-right" /></Link>
+                <Link href={event.href} className="landing-slide-link">View event <Icon name="arrow-up-right" /></Link>
               ) : (
                 <button type="button" className="landing-slide-link" aria-label={`Preview event: ${event.name}`} onClick={() => {
                   setSelected(event)
@@ -124,12 +121,24 @@ export default function FeaturedEvents({ events, samples }: { events: LandingEve
                 }}>Preview event <Icon name="arrow-up-right" /></button>
               )}
             </div>
-          </li>
-        ))}
-      </ul>
+            {last > 0 && (
+              <div className="landing-gallery-nav">
+                <p>Scroll to explore{samples && ' the sample lineup'}</p>
+                <div className="landing-carousel-controls">
+                  <span role="status" aria-atomic="true" className="landing-count">
+                    {String(active + 1).padStart(2, '0')} / {events.length}<span className="sr-only"> · {event.name}</span>
+                  </span>
+                  <button type="button" aria-label="Previous event" disabled={active === 0} onClick={() => seek(active - 1)}><Icon name="chevron-left" /></button>
+                  <button type="button" aria-label="Next event" disabled={active === last} onClick={() => seek(active + 1)}><Icon name="chevron-right" /></button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
       {samples && (
         <dialog ref={dialog} className="landing-event-dialog" aria-labelledby="landing-dialog-title"
-          onClick={event => { if (event.target === event.currentTarget) dialog.current?.close() }}>
+          onClick={click => { if (click.target === click.currentTarget) dialog.current?.close() }}>
           <div>
             <div className="landing-dialog-head">
               <span>Sample event</span>
@@ -141,6 +150,6 @@ export default function FeaturedEvents({ events, samples }: { events: LandingEve
           </div>
         </dialog>
       )}
-    </section>
+    </>
   )
 }

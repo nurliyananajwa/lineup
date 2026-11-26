@@ -38,15 +38,9 @@ async function HomePageContent() {
     <div className="landing-home">
       <section className="landing-hero" aria-labelledby="landing-title">
         <div className="landing-hero-copy">
-          <h1 id="landing-title">Good things<br />are happening.</h1>
+          <h1 id="landing-title">Find your next event.</h1>
           <p>Discover events, reserve your spot, and get your QR ticket with Lineup.</p>
-          <a className="landing-primary" href={featured.length ? '#featured-events-title' : '#events'}>Explore events <Icon name="arrow-right" /></a>
-        </div>
-        <div className="landing-hero-art" aria-hidden="true">
-          <div className="landing-pass">
-            <span>Lineup</span>
-            <Icon name="ticket" />
-          </div>
+          <a className="landing-primary" href={featured.length ? '#featured-events' : '#events'}>Explore events <Icon name="arrow-right" /></a>
         </div>
       </section>
 
