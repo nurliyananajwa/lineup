@@ -27,6 +27,47 @@ const { data: venue, error: venueError } = await client.from('venues')
   .insert({ name: 'CI Workshop Room', address: 'Local test venue', capacity: 2 }).select('id').single()
 if (venueError) throw venueError
 fixtures.venueId = venue.id
+// Representative dashboard data stays inside this disposable loopback database.
+const { data: dashboardVenue, error: dashboardVenueError } = await client.from('venues')
+  .insert({ name: 'The Courtyard', address: 'Local fixture venue', capacity: 120 }).select('id').single()
+if (dashboardVenueError) throw dashboardVenueError
+const definitions = [
+  ['Open-Air Cinema', 'approved', 3], ['The Makers’ Meet', 'approved', 9],
+  ['Design for Everyone', 'pending', 5], ['Sunday Community Run', 'draft', 6],
+  ['Photography Walk', 'rejected', 18], ['Creative Coding Lab', 'approved', -7],
+]
+fixtures.dashboardRegistrations = 0
+fixtures.dashboardCheckedIn = 0
+for (const [index, [name, status, days]] of definitions.entries()) {
+  const starts = new Date(Date.now() + days * 86400000)
+  starts.setUTCHours(12, 0, 0, 0)
+  const ends = new Date(starts.getTime() + 3600000)
+  const { data: event, error } = await client.from('events').insert({
+    name, status, organizer_id: fixtures.accounts.organizer.id, venue_id: dashboardVenue.id,
+    starts_at: starts.toISOString(), ends_at: ends.toISOString(), objectives: 'Local dashboard workflow fixture.',
+    created_at: new Date(Date.now() - (15 - index) * 86400000).toISOString(),
+    ...(status === 'approved' || status === 'rejected' ? { reviewed_by: fixtures.accounts.admin.id, reviewed_at: new Date(Date.now() - (13 - index) * 86400000).toISOString() } : {}),
+    ...(status === 'rejected' ? { review_comments: 'Please confirm the venue and programme.' } : {}),
+  }).select('id').single()
+  if (error) throw error
+  const count = index === 0 ? 48 : index === 5 ? 24 : 0
+  if (count) {
+    const rows = Array.from({ length: count }, (_, i) => ({
+      event_id: event.id, name: `Local attendee ${i + 1}`, email: `attendee.${index}.${i}@example.com`,
+      created_at: new Date(Date.now() - (index === 5 ? 9 + i % 5 : i % 7) * 86400000 - 3600000).toISOString(),
+      attended: index === 5 && i < 12, checked_in_at: index === 5 && i < 12 ? starts.toISOString() : null,
+    }))
+    const { error } = await client.from('tickets').insert(rows)
+    if (error) throw error
+    fixtures.dashboardRegistrations += count
+    fixtures.dashboardCheckedIn += index === 5 ? 12 : 0
+  }
+}
+const { error: otherEventError } = await client.from('events').insert({
+  name: 'PRIVATE OTHER EVENT', organizer_id: fixtures.accounts.other.id, status: 'draft',
+  starts_at: new Date(Date.now() + 30 * 86400000).toISOString(), ends_at: new Date(Date.now() + 30 * 86400000 + 3600000).toISOString(),
+})
+if (otherEventError) throw otherEventError
 const start = new Date(Date.now() + 14 * 86400000)
 start.setUTCMinutes(0, 0, 0)
 const end = new Date(start.getTime() + 3600000)
